@@ -1,6 +1,6 @@
 # Cobblemon Showdown
 
-A Forge mod for Minecraft 1.20.1 that adds competitive battling features to Cobblemon.
+A Forge mod for Minecraft 1.20.1 that adds competitive battling and QoL features to Cobblemon.
 
 ## Features
 
