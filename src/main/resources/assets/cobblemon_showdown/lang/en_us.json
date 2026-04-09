@@ -1,5 +1,18 @@
 {
   "key.categories.cobblemon_showdown": "Cobblemon Showdown",
   "key.cobblemon_showdown.show_info": "Show Info",
-  "key.cobblemon_showdown.show_party_learners": "Show Party Learners"
+  "key.cobblemon_showdown.show_party_learners": "Show Party Learners",
+  "tooltip.cobblemon_showdown.tm_info.move": "Hold %s for move info",
+  "tooltip.cobblemon_showdown.tm_info.learner": "Hold %s for party learners",
+  "tooltip.cobblemon_showdown.move_info": "Move Info:",
+  "tooltip.cobblemon_showdown.move_info.type": "  Type: %s",
+  "tooltip.cobblemon_showdown.move_info.category": "  Category: %s",
+  "tooltip.cobblemon_showdown.move_info.power": "  Power: %s",
+  "tooltip.cobblemon_showdown.move_info.accuracy": "  Accuracy: %s",
+  "tooltip.cobblemon_showdown.move_info.pp": "  PP: %s",
+  "tooltip.cobblemon_showdown.party_learner": "Your Party:",
+  "tooltip.cobblemon_showdown.party_learner.can_learn": "  Can learn: %s",
+  "tooltip.cobblemon_showdown.party_learner.already_knows": "  Already knows: %s",
+  "tooltip.cobblemon_showdown.party_learner.cannot_learn": "  Cannot learn: %s",
+  "tooltip.cobblemon_showdown.party_learner.nobody": "  No Pokemon in party"
 }

@@ -1,0 +1,18 @@
+{
+  "key.categories.cobblemon_showdown": "Cobblemon Showdown",
+  "key.cobblemon_showdown.show_info": "정보 보기",
+  "key.cobblemon_showdown.show_party_learners": "배울 수 있는 파티 멤버 보기",
+  "tooltip.cobblemon_showdown.tm_info.move": "기술 정보: %s",
+  "tooltip.cobblemon_showdown.tm_info.learner": "배울 수 있는 파티 멤버: %s",
+  "tooltip.cobblemon_showdown.move_info": "기술 정보:",
+  "tooltip.cobblemon_showdown.move_info.type": "  타입: %s",
+  "tooltip.cobblemon_showdown.move_info.category": "  분류: %s",
+  "tooltip.cobblemon_showdown.move_info.power": "  위력: %s",
+  "tooltip.cobblemon_showdown.move_info.accuracy": "  명중률: %s",
+  "tooltip.cobblemon_showdown.move_info.pp": "  PP: %s",
+  "tooltip.cobblemon_showdown.party_learner": "파티 멤버:",
+  "tooltip.cobblemon_showdown.party_learner.can_learn": "  배울 수 있음: %s",
+  "tooltip.cobblemon_showdown.party_learner.already_knows": "  이미 알고 있음: %s",
+  "tooltip.cobblemon_showdown.party_learner.cannot_learn": "  배울 수 없음: %s",
+  "tooltip.cobblemon_showdown.party_learner.nobody": "  파티에 포켓몬 없음"
+}

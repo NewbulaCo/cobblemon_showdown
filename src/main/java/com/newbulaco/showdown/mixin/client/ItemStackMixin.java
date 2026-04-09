@@ -1,16 +1,23 @@
 package com.newbulaco.showdown.mixin.client;
 
 import com.cobblemon.mod.common.Cobblemon;
+import com.cobblemon.mod.common.api.moves.categories.DamageCategory;
 import com.cobblemon.mod.common.client.CobblemonClient;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
 import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.client.storage.ClientParty;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.newbulaco.showdown.util.ComponentUtil;
 import net.minecraft.ChatFormatting;
 import com.newbulaco.showdown.client.ShowdownKeybinds;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.StringSplitter;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 // adds move info and party learner info to SimpleTMs TM/TR item tooltips.
 // shift shows move details, ctrl shows which party pokemon can learn the move.
@@ -57,18 +65,18 @@ public class ItemStackMixin {
         boolean learnersHeld = ShowdownKeybinds.isShowPartyLearnersDown();
 
         if (!infoHeld && !learnersHeld) {
-            tooltip.add(Component.literal("Hold ")
-                    .withStyle(ChatFormatting.DARK_GRAY)
-                    .append(Component.literal(ShowdownKeybinds.getShowInfoKeyName())
-                            .withStyle(ChatFormatting.YELLOW))
-                    .append(Component.literal(" for move info")
-                            .withStyle(ChatFormatting.DARK_GRAY)));
-            tooltip.add(Component.literal("Hold ")
-                    .withStyle(ChatFormatting.DARK_GRAY)
-                    .append(Component.literal(ShowdownKeybinds.getShowPartyLearnersKeyName())
-                            .withStyle(ChatFormatting.AQUA))
-                    .append(Component.literal(" for party learners")
-                            .withStyle(ChatFormatting.DARK_GRAY)));
+            tooltip.add(
+                    Component.translatable(
+                            "tooltip.cobblemon_showdown.tm_info.move",
+                            ShowdownKeybinds.getShowInfoKeyName().copy().withStyle(ChatFormatting.YELLOW)
+                    ).withStyle(ChatFormatting.DARK_GRAY)
+            );
+            tooltip.add(
+                    Component.translatable(
+                            "tooltip.cobblemon_showdown.tm_info.learner",
+                            ShowdownKeybinds.getShowPartyLearnersKeyName().copy().withStyle(ChatFormatting.AQUA)
+                    ).withStyle(ChatFormatting.DARK_GRAY)
+            );
             return;
         }
 
@@ -84,55 +92,62 @@ public class ItemStackMixin {
     @Unique
     private void cobblemonShowdown$addMoveInfo(List<Component> tooltip, MoveTemplate move) {
         tooltip.add(Component.empty());
-        tooltip.add(Component.literal("Move Info:")
+        tooltip.add(Component.translatable("tooltip.cobblemon_showdown.move_info")
                 .withStyle(ChatFormatting.YELLOW, ChatFormatting.UNDERLINE));
 
         ElementalType type = move.getElementalType();
-        ChatFormatting typeColor = cobblemonShowdown$getTypeColor(type.getName());
-        tooltip.add(Component.literal("  Type: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(cobblemonShowdown$formatName(type.getName()))
-                        .withStyle(typeColor, ChatFormatting.BOLD)));
+        // ChatFormatting typeColor = cobblemonShowdown$getTypeColor(type.getName());
+        // Use Cobblemon type color
+        tooltip.add(
+                Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.type",
+                        type.getDisplayName().setStyle(Style.EMPTY.withBold(true).withColor(type.getHue()))
+                ).withStyle(ChatFormatting.GRAY));
 
-        String category = move.getDamageCategory().getName();
-        ChatFormatting catColor = switch (category.toLowerCase()) {
+        DamageCategory category = move.getDamageCategory();
+        ChatFormatting catColor = switch (category.getName().toLowerCase()) {
             case "physical" -> ChatFormatting.RED;
             case "special" -> ChatFormatting.BLUE;
             default -> ChatFormatting.GRAY;
         };
-        tooltip.add(Component.literal("  Category: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(category)
-                        .withStyle(catColor)));
+        tooltip.add(
+                Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.category",
+                        category.getDisplayName().copy().withStyle(catColor)
+                ).withStyle(ChatFormatting.GRAY));
 
         double power = move.getPower();
-        tooltip.add(Component.literal("  Power: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(power > 0 ? String.valueOf((int) power) : "-")
-                        .withStyle(ChatFormatting.WHITE)));
+        tooltip.add(
+                Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.power",
+                        Component.literal(power > 0 ? String.valueOf((int) power) : "-")
+                                .withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
 
         double accuracy = move.getAccuracy();
-        tooltip.add(Component.literal("  Accuracy: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(accuracy > 0 ? String.valueOf((int) accuracy) : "-")
-                        .withStyle(ChatFormatting.WHITE)));
+        tooltip.add(
+                Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.accuracy",
+                        Component.literal(accuracy > 0 ? String.valueOf((int) accuracy) : "-")
+                                .withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
 
-        tooltip.add(Component.literal("  PP: ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(String.valueOf(move.getPp()))
-                        .withStyle(ChatFormatting.WHITE)));
+        tooltip.add(
+                Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.pp",
+                        Component.literal(String.valueOf(move.getPp()))
+                                .withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
 
         try {
             var desc = move.getDescription();
-            if (desc != null) {
-                String descText = desc.getString();
-                if (descText != null && !descText.isEmpty()) {
-                    tooltip.add(Component.empty());
-                    List<String> lines = cobblemonShowdown$wrapText(descText, 40);
-                    for (String line : lines) {
-                        tooltip.add(Component.literal("  " + line)
-                                .withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY));
-                    }
+            if (desc != null && !desc.getString().isEmpty()) {
+                tooltip.add(Component.empty());
+                // Average width of Mojangles is 4
+                List<Component> lines = ComponentUtil.wrapText(desc, 160);
+                for (Component line : lines) {
+                    tooltip.add(Component.empty().withStyle(ChatFormatting.ITALIC, ChatFormatting.GRAY)
+                            .append("  ").append(line));
                 }
             }
         } catch (Exception e) {
@@ -168,47 +183,50 @@ public class ItemStackMixin {
             }
 
             tooltip.add(Component.empty());
-            tooltip.add(Component.literal("Your Party:")
+            tooltip.add(Component.translatable("tooltip.cobblemon_showdown.party_learner")
                     .withStyle(ChatFormatting.AQUA, ChatFormatting.UNDERLINE));
 
             if (!canLearn.isEmpty()) {
-                StringBuilder names = new StringBuilder();
+                MutableComponent names = Component.empty();
                 for (int i = 0; i < canLearn.size(); i++) {
                     if (i > 0) names.append(", ");
-                    names.append(canLearn.get(i).getSpecies().getName());
+                    names.append(canLearn.get(i).getSpecies().getTranslatedName());
                 }
-                tooltip.add(Component.literal("  Can learn: ")
-                        .withStyle(ChatFormatting.GREEN)
-                        .append(Component.literal(names.toString())
-                                .withStyle(ChatFormatting.WHITE)));
+                tooltip.add(
+                        Component.translatable(
+                                "tooltip.cobblemon_showdown.party_learner.can_learn",
+                                names.withStyle(ChatFormatting.WHITE)
+                        ).withStyle(ChatFormatting.GREEN));
             }
 
             if (!alreadyKnows.isEmpty()) {
-                StringBuilder names = new StringBuilder();
+                MutableComponent names = Component.empty();
                 for (int i = 0; i < alreadyKnows.size(); i++) {
                     if (i > 0) names.append(", ");
-                    names.append(alreadyKnows.get(i).getSpecies().getName());
+                    names.append(alreadyKnows.get(i).getSpecies().getTranslatedName());
                 }
-                tooltip.add(Component.literal("  Already knows: ")
-                        .withStyle(ChatFormatting.YELLOW)
-                        .append(Component.literal(names.toString())
-                                .withStyle(ChatFormatting.WHITE)));
+                tooltip.add(
+                        Component.translatable(
+                                "tooltip.cobblemon_showdown.party_learner.already_knows",
+                                names.withStyle(ChatFormatting.WHITE)
+                        ).withStyle(ChatFormatting.YELLOW));
             }
 
             if (!cannotLearn.isEmpty()) {
-                StringBuilder names = new StringBuilder();
+                MutableComponent names = Component.empty();
                 for (int i = 0; i < cannotLearn.size(); i++) {
                     if (i > 0) names.append(", ");
-                    names.append(cannotLearn.get(i).getSpecies().getName());
+                    names.append(cannotLearn.get(i).getSpecies().getTranslatedName());
                 }
-                tooltip.add(Component.literal("  Cannot learn: ")
-                        .withStyle(ChatFormatting.RED)
-                        .append(Component.literal(names.toString())
-                                .withStyle(ChatFormatting.DARK_GRAY)));
+                tooltip.add(
+                        Component.translatable(
+                                "tooltip.cobblemon_showdown.party_learner.cannot_learn",
+                                names.withStyle(ChatFormatting.DARK_GRAY)
+                        ).withStyle(ChatFormatting.RED));
             }
 
             if (canLearn.isEmpty() && alreadyKnows.isEmpty() && cannotLearn.isEmpty()) {
-                tooltip.add(Component.literal("  No Pokemon in party")
+                tooltip.add(Component.translatable("tooltip.cobblemon_showdown.party_learner.nobody")
                         .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
             }
 
@@ -311,31 +329,5 @@ public class ItemStackMixin {
             }
         }
         return result.toString().trim();
-    }
-
-    @Unique
-    private List<String> cobblemonShowdown$wrapText(String text, int maxWidth) {
-        List<String> lines = new ArrayList<>();
-        String[] words = text.split(" ");
-        StringBuilder currentLine = new StringBuilder();
-
-        for (String word : words) {
-            if (currentLine.length() + word.length() + 1 > maxWidth) {
-                if (currentLine.length() > 0) {
-                    lines.add(currentLine.toString());
-                    currentLine = new StringBuilder();
-                }
-            }
-            if (currentLine.length() > 0) {
-                currentLine.append(" ");
-            }
-            currentLine.append(word);
-        }
-
-        if (currentLine.length() > 0) {
-            lines.add(currentLine.toString());
-        }
-
-        return lines;
     }
 }

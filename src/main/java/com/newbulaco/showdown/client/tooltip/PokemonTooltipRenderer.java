@@ -38,7 +38,7 @@ public class PokemonTooltipRenderer {
         } else {
             tooltipLines.add(Component.literal("Hold ")
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)
-                .append(Component.literal(ShowdownKeybinds.getShowInfoKeyName())
+                .append(ShowdownKeybinds.getShowInfoKeyName().copy()
                     .withStyle(ChatFormatting.YELLOW, ChatFormatting.ITALIC))
                 .append(Component.literal(" for more info")
                     .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC)));
