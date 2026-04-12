@@ -60,8 +60,10 @@ public abstract class SideStartInstructionMixin {
                         ? battle.getSide1() : battle.getSide2();
 
                 for (var battleSide : battle.getSides()) {
-                    String subject = battleSide == side ? "your side" : "the opposing side";
-                    Component lang = Component.literal(finalDisplayName + " was set on " + subject + "!");
+                    Component subject = battleSide == side
+                        ? Component.translatable("cobblemon_showdown.custom.condition.ally")
+                        : Component.translatable("cobblemon_showdown.custom.condition.opponent");
+                    Component lang = Component.translatable("cobblemon_showdown.custom.condition.start", finalDisplayName, subject);
                     battleSide.broadcastChatMessage(lang);
                 }
 

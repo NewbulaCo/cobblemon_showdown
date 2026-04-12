@@ -11,6 +11,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -67,7 +68,7 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
     @Override
     public @NotNull Component getDisplayName() {
-        return Component.literal("⚔ Battle Arena - Select " + maxSelections + " Pokemon ⚔");
+        return Component.translatable("cobblemon_showdown.battle_gui.title", maxSelections);
     }
 
     @Nullable
@@ -94,7 +95,8 @@ public class PartySelectionMenuProvider implements MenuProvider {
                 menu.setItem(itemSlot, menu.getStateId(), pokemonItem);
             } else {
                 ItemStack empty = new ItemStack(Items.LIGHT_GRAY_STAINED_GLASS_PANE);
-                empty.setHoverName(Component.literal(ChatFormatting.GRAY + "Empty Slot"));
+                empty.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.empty_slot")
+                    .withStyle(ChatFormatting.GRAY));
                 menu.setItem(itemSlot, menu.getStateId(), empty);
             }
         }
@@ -105,17 +107,20 @@ public class PartySelectionMenuProvider implements MenuProvider {
             Pokemon pokemon = opponentParty.get(i);
             if (pokemon != null) {
                 if (format.hasTeamPreview()) {
-                    ItemStack pokemonItem = createOpponentPokemonDisplayItem(pokemon, opponent.getName().getString());
+                    ItemStack pokemonItem = createOpponentPokemonDisplayItem(pokemon, opponent.getName());
                     menu.setItem(itemSlot, menu.getStateId(), pokemonItem);
                 } else {
                     ItemStack pokeballItem = new ItemStack(CobblemonItems.POKE_BALL.asItem());
-                    pokeballItem.setHoverName(Component.literal(ChatFormatting.GOLD +
-                        opponent.getName().getString() + "'s Pokemon"));
+                    pokeballItem.setHoverName(Component.translatable(
+                        "cobblemon_showdown.battle_gui.pokemon_owner",
+                        opponent.getName().getString()
+                    ).withStyle(ChatFormatting.GOLD));
                     menu.setItem(itemSlot, menu.getStateId(), pokeballItem);
                 }
             } else {
                 ItemStack empty = new ItemStack(Items.LIGHT_GRAY_STAINED_GLASS_PANE);
-                empty.setHoverName(Component.literal(ChatFormatting.GRAY + "Empty Slot"));
+                empty.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.empty_slot")
+                    .withStyle(ChatFormatting.GRAY));
                 menu.setItem(itemSlot, menu.getStateId(), empty);
             }
         }
@@ -136,15 +141,20 @@ public class PartySelectionMenuProvider implements MenuProvider {
                     filler = guiModifierFlag ?
                         new ItemStack(Items.LIGHT_BLUE_STAINED_GLASS_PANE) :
                         new ItemStack(Items.CYAN_STAINED_GLASS_PANE);
-                    filler.setHoverName(Component.literal(ChatFormatting.AQUA + "Your Side"));
+                    filler.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.side.ally")
+                        .withStyle(ChatFormatting.AQUA));
                 } else if (col == 7) {
                     filler = guiModifierFlag ?
                         new ItemStack(Items.YELLOW_STAINED_GLASS_PANE) :
                         new ItemStack(Items.ORANGE_STAINED_GLASS_PANE);
-                    filler.setHoverName(Component.literal(ChatFormatting.GOLD + opponent.getName().getString() + "'s Side"));
+                    filler.setHoverName(Component.translatable(
+                        "cobblemon_showdown.battle_gui.side.opponent",
+                        opponent.getName().getString()
+                    ).withStyle(ChatFormatting.GOLD));
                 } else if (col >= 2 && col <= 6) {
                     filler = new ItemStack(Items.GRAY_STAINED_GLASS_PANE);
-                    filler.setHoverName(Component.literal(ChatFormatting.DARK_GRAY + "Battle Arena"));
+                    filler.setHoverName(Component.translatable("cobblemon_showdown.battle_gui")
+                        .withStyle(ChatFormatting.DARK_GRAY));
                 } else {
                     continue;
                 }
@@ -156,12 +166,12 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
     private void setupBattleOrderDisplay(PartySelectionMenu menu) {
         ItemStack arenaTitle = new ItemStack(Items.NETHER_STAR);
-        arenaTitle.setHoverName(Component.literal(ChatFormatting.GOLD + "★ " + ChatFormatting.WHITE + "Battle Order" + ChatFormatting.GOLD + " ★"));
+        arenaTitle.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.order"));
         ListTag titleLore = new ListTag();
         titleLore.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Your selected Pokemon appear below"))));
+            Component.translatable("cobblemon_showdown.battle_gui.order.tip1").withStyle(ChatFormatting.GRAY))));
         titleLore.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "First selected = Lead Pokemon"))));
+            Component.translatable("cobblemon_showdown.battle_gui.order.tip2").withStyle(ChatFormatting.GRAY))));
         arenaTitle.getOrCreateTagElement("display").put("Lore", titleLore);
         menu.setItem(4, menu.getStateId(), arenaTitle);
 
@@ -178,11 +188,17 @@ public class PartySelectionMenuProvider implements MenuProvider {
                 }
             } else {
                 ItemStack emptySlot = new ItemStack(Items.BLACK_STAINED_GLASS_PANE);
-                String slotLabel = (i == 0) ? "LEAD" : "#" + (i + 1);
-                emptySlot.setHoverName(Component.literal(ChatFormatting.DARK_GRAY + "[" + slotLabel + "] Empty"));
+                Component slotLabel = (i == 0)
+                    ? Component.translatable("cobblemon_showdown.battle_gui.order.leader")
+                    : Component.translatable("cobblemon_showdown.battle_gui.order.number", (i + 1));
+                emptySlot.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.order.tag",
+                        slotLabel,
+                        Component.translatable("cobblemon_showdown.battle_gui.order.empty"))
+                    .withStyle(ChatFormatting.DARK_GRAY));
                 ListTag lore = new ListTag();
                 lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.GRAY + "Select a Pokemon from the left"))));
+                    Component.translatable("cobblemon_showdown.battle_gui.order.select_pokemon")
+                        .withStyle(ChatFormatting.GRAY))));
                 emptySlot.getOrCreateTagElement("display").put("Lore", lore);
                 menu.setItem(displaySlot, menu.getStateId(), emptySlot);
             }
@@ -199,22 +215,32 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
         ItemStack item = PokemonItem.from(displayPokemon, 1);
 
-        String orderLabel = (order == 1) ? "★ LEAD" : "#" + order;
+        Component orderLabel = (order == 1)
+            ? Component.literal("★ ").append(Component.translatable("cobblemon_showdown.battle_gui.order.leader"))
+            : Component.translatable("cobblemon_showdown.battle_gui.order.number", order);
         ChatFormatting color = (order == 1) ? ChatFormatting.GOLD : ChatFormatting.GREEN;
-        item.setHoverName(Component.literal(color + "[" + orderLabel + "] " + ChatFormatting.WHITE + displayPokemon.getDisplayName().getString()));
+        item.setHoverName(Component.translatable(
+            "cobblemon_showdown.battle_gui.order.tag",
+            orderLabel,
+            displayPokemon.getDisplayName().copy().withStyle(ChatFormatting.WHITE)
+        ).withStyle(color));
 
         ListTag lore = new ListTag();
         lore.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.YELLOW + "Click to remove from battle order"))));
+            Component.translatable("cobblemon_showdown.battle_gui.order.remove_pokemon")
+                .withStyle(ChatFormatting.YELLOW))));
         lore.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
 
-        StringBuilder typeStr = new StringBuilder();
-        typeStr.append(displayPokemon.getPrimaryType().getDisplayName().getString());
+        MutableComponent typeStr = Component.empty();
+        typeStr.append(displayPokemon.getPrimaryType().getDisplayName());
         if (displayPokemon.getSecondaryType() != null) {
-            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName().getString());
+            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName());
         }
         lore.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Type: " + ChatFormatting.WHITE + typeStr))));
+            Component.translatable(
+                "tooltip.cobblemon_showdown.pokemon_info.type",
+                typeStr
+            ).withStyle(ChatFormatting.GRAY))));
 
         item.getOrCreateTag().putInt("partySlot", partySlot);
         item.getOrCreateTagElement("display").put("Lore", lore);
@@ -223,35 +249,47 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
     private void setupFormatInfo(PartySelectionMenu menu) {
         ItemStack formatItem = new ItemStack(Items.BOOK);
-        formatItem.setHoverName(Component.literal(ChatFormatting.AQUA + "Format: " + ChatFormatting.WHITE + format.getName()));
+        formatItem.setHoverName(Component.translatable(
+            "cobblemon_showdown.battle_gui.setup.format",
+            Component.literal(format.getName()).withStyle(ChatFormatting.WHITE)
+        ).withStyle(ChatFormatting.AQUA));
 
         ListTag lore = new ListTag();
         lore.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Party Size: " + ChatFormatting.WHITE + format.getPartySize()))));
+            Component.translatable("cobblemon_showdown.battle_gui.setup.party_size",
+                Component.translatable("" + format.getPartySize()).withStyle(ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY))));
 
         if (format.getSetLevel() > 0) {
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Level Cap: " + ChatFormatting.WHITE + format.getSetLevel()))));
+                Component.translatable("cobblemon_showdown.battle_gui.setup.level_cap",
+                    Component.translatable("" + format.getSetLevel()).withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY))));
         }
 
         if (format.getBestOf() > 1) {
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Best of: " + ChatFormatting.WHITE + format.getBestOf()))));
+                Component.translatable("cobblemon_showdown.battle_gui.setup.best",
+                    Component.translatable("" + format.getBestOf()).withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY))));
         }
 
         if (format.hasSpeciesClause()) {
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + "Species Clause Active"))));
+                Component.translatable("cobblemon_showdown.battle_gui.setup.clause")
+                    .withStyle(ChatFormatting.YELLOW))));
         }
 
         if (format.hasBattleTimer()) {
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + "Battle Timer Active"))));
+                Component.translatable("cobblemon_showdown.battle_gui.setup.timer")
+                    .withStyle(ChatFormatting.YELLOW))));
         }
 
         if (format.hasTeamPreview()) {
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GREEN + "Team Preview Enabled"))));
+                Component.translatable("cobblemon_showdown.battle_gui.setup.preview")
+                    .withStyle(ChatFormatting.GREEN))));
         }
 
         if (format.getBans() != null) {
@@ -265,7 +303,8 @@ public class PartySelectionMenuProvider implements MenuProvider {
             if (totalBans > 0) {
                 lore.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
                 lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.RED + "Bans: " + totalBans + " total restrictions"))));
+                    Component.translatable("cobblemon_showdown.battle_gui.setup.ban", totalBans)
+                        .withStyle(ChatFormatting.RED))));
             }
         }
 
@@ -279,30 +318,39 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
         if (playerReady) {
             readyButton = new ItemStack(Items.LIME_CONCRETE);
-            readyButton.setHoverName(Component.literal(ChatFormatting.GREEN + "✓ READY!"));
+            readyButton.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.ready")
+                .withStyle(ChatFormatting.GREEN));
             ListTag lore = new ListTag();
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Waiting for opponent..."))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready.tip1")
+                    .withStyle(ChatFormatting.GRAY))));
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + "Click to cancel ready"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready.tip2")
+                    .withStyle(ChatFormatting.YELLOW))));
             readyButton.getOrCreateTagElement("display").put("Lore", lore);
         } else if (canReady) {
             readyButton = new ItemStack(Items.EMERALD_BLOCK);
-            readyButton.setHoverName(Component.literal(ChatFormatting.GREEN + "▶ CLICK WHEN READY"));
+            readyButton.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.ready_click")
+                .withStyle(ChatFormatting.GREEN));
             ListTag lore = new ListTag();
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.WHITE + "You have selected " + maxSelections + " Pokemon"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready_click.tip1", maxSelections)
+                    .withStyle(ChatFormatting.WHITE))));
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + "Click to confirm your selection!"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready_click.tip2")
+                    .withStyle(ChatFormatting.YELLOW))));
             readyButton.getOrCreateTagElement("display").put("Lore", lore);
         } else {
             readyButton = new ItemStack(Items.BARRIER);
-            readyButton.setHoverName(Component.literal(ChatFormatting.RED + "✗ NOT READY"));
+            readyButton.setHoverName(Component.translatable("cobblemon_showdown.battle_gui.ready_not")
+                .withStyle(ChatFormatting.RED));
             ListTag lore = new ListTag();
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.WHITE + "Selected: " + selectedSlots.size() + "/" + maxSelections))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready_not.tip2", selectedSlots.size(), maxSelections)
+                    .withStyle(ChatFormatting.WHITE))));
             lore.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Select more Pokemon to continue"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ready_not.tip1")
+                    .withStyle(ChatFormatting.GRAY))));
             readyButton.getOrCreateTagElement("display").put("Lore", lore);
         }
 
@@ -315,21 +363,36 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
         ItemStack timerItem = new ItemStack(Items.CLOCK);
         ChatFormatting timerColor = timeLeft > 30 ? ChatFormatting.GREEN : (timeLeft > 10 ? ChatFormatting.YELLOW : ChatFormatting.RED);
-        timerItem.setHoverName(Component.literal(timerColor + "⏱ " + timeLeft + " seconds remaining"));
+        timerItem.setHoverName(
+            Component.translatable("cobblemon_showdown.battle_gui.ready_status.timer", timeLeft)
+                .withStyle(timerColor));
         menu.setItem(TIMER_SLOT, menu.getStateId(), timerItem);
 
         ItemStack playerStatus = new ItemStack(playerReady ? Items.LIME_DYE : Items.LIGHT_BLUE_DYE);
-        String playerStatusText = playerReady ? ChatFormatting.GREEN + "READY ✓" : ChatFormatting.WHITE.toString() + selectedSlots.size() + "/" + maxSelections;
-        playerStatus.setHoverName(Component.literal(ChatFormatting.AQUA + "You: " + playerStatusText));
+        Component playerStatusText = playerReady
+            ? Component.translatable("cobblemon_showdown.battle_gui.ready_status.ready").withStyle(ChatFormatting.GREEN)
+            : Component.literal(selectedSlots.size() + "/" + maxSelections).withStyle(ChatFormatting.WHITE);
+        playerStatus.setHoverName(
+            Component.translatable(
+                "cobblemon_showdown.battle_gui.ready_status.ally",
+                playerStatusText
+            ).withStyle(ChatFormatting.AQUA));
         menu.setItem(PLAYER_STATUS_SLOT, menu.getStateId(), playerStatus);
 
         ItemStack opponentStatus = new ItemStack(opponentReady ? Items.LIME_DYE : Items.ORANGE_DYE);
-        String opponentStatusText = opponentReady ? ChatFormatting.GREEN + "READY ✓" : ChatFormatting.WHITE.toString() + opponentSelectedCount + "/" + maxSelections;
-        opponentStatus.setHoverName(Component.literal(ChatFormatting.GOLD + opponent.getName().getString() + ": " + opponentStatusText));
+        Component opponentStatusText = opponentReady
+            ? Component.translatable("cobblemon_showdown.battle_gui.ready_status.ready").withStyle(ChatFormatting.GREEN)
+            : Component.literal(opponentSelectedCount + "/" + maxSelections).withStyle(ChatFormatting.WHITE);
+        opponentStatus.setHoverName(
+            Component.translatable(
+                "cobblemon_showdown.battle_gui.ready_status.opponent",
+                opponent.getName(),
+                opponentStatusText
+            ).withStyle(ChatFormatting.GOLD));
         menu.setItem(OPPONENT_STATUS_SLOT, menu.getStateId(), opponentStatus);
     }
 
-    private ItemStack createOpponentPokemonDisplayItem(Pokemon pokemon, String ownerName) {
+    private ItemStack createOpponentPokemonDisplayItem(Pokemon pokemon, Component ownerName) {
         Pokemon displayPokemon = pokemon;
         if (format.getSetLevel() > 0) {
             BattlePokemon copy = BattlePokemon.Companion.safeCopyOf(pokemon);
@@ -339,44 +402,56 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
         ItemStack item = PokemonItem.from(displayPokemon, 1);
 
-        String levelStr = format.getSetLevel() > 0 ?
-            " (Lv." + format.getSetLevel() + ")" : " (Lv." + pokemon.getLevel() + ")";
-        item.setHoverName(Component.literal(ChatFormatting.GOLD + ownerName + "'s " +
-            displayPokemon.getDisplayName().getString() + levelStr));
+        int levelStr = format.getSetLevel() > 0 ?
+            format.getSetLevel() : pokemon.getLevel();
+        item.setHoverName(Component.translatable(
+            "cobblemon_showdown.battle_gui.opponent_pokemon.name",
+            ownerName,
+            displayPokemon.getDisplayName(),
+            levelStr
+        ).withStyle(ChatFormatting.GOLD));
 
         ListTag loreTag = new ListTag();
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.DARK_PURPLE + "Opponent's Pokemon"))));
+            Component.translatable("cobblemon_showdown.battle_gui.opponent_pokemon")
+                .withStyle(ChatFormatting.DARK_PURPLE))));
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
 
-        StringBuilder typeStr = new StringBuilder();
-        typeStr.append(displayPokemon.getPrimaryType().getDisplayName().getString());
+        MutableComponent typeStr = Component.empty().withStyle(ChatFormatting.WHITE);
+        typeStr.append(displayPokemon.getPrimaryType().getDisplayName());
         if (displayPokemon.getSecondaryType() != null) {
-            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName().getString());
+            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName());
         }
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Type: " + ChatFormatting.WHITE + typeStr))));
+            Component.translatable("tooltip.cobblemon_showdown.pokemon_info.type", typeStr)
+                .withStyle(ChatFormatting.GRAY))));
 
         if (displayPokemon.getAbility() != null) {
-            String abilityName = displayPokemon.getAbility().getDisplayName();
-            if (!abilityName.isEmpty()) {
+            Component abilityName = Component.literal(displayPokemon.getAbility().getDisplayName())
+                .withStyle(ChatFormatting.GOLD);
+            if (!abilityName.getString().isEmpty()) {
                 loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.GRAY + "Ability: " + ChatFormatting.GOLD + abilityName))));
+                    Component.translatable("tooltip.cobblemon_showdown.pokemon_info.ability", abilityName)
+                        .withStyle(ChatFormatting.GRAY))));
             }
         }
 
         if (!displayPokemon.heldItem().isEmpty()) {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Item: " + ChatFormatting.AQUA +
-                    displayPokemon.heldItem().getHoverName().getString()))));
+                Component.translatable(
+                    "tooltip.cobblemon_showdown.pokemon_info.item",
+                    displayPokemon.heldItem().getHoverName().copy().withStyle(ChatFormatting.AQUA)
+                ).withStyle(ChatFormatting.GRAY))));
         }
 
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Moves:"))));
+            Component.translatable("tooltip.cobblemon_showdown.pokemon_info.moves")
+                .withStyle(ChatFormatting.GRAY))));
         displayPokemon.getMoveSet().getMoves().forEach(move -> {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.WHITE + "  - " + move.getDisplayName().getString()))));
+                Component.empty().withStyle(ChatFormatting.WHITE)
+                    .append("  - ").append(move.getDisplayName()))));
         });
 
         item.getOrCreateTagElement("display").put("Lore", loreTag);
@@ -397,77 +472,102 @@ public class PartySelectionMenuProvider implements MenuProvider {
         boolean isSelected = selectionOrder > 0;
 
         ChatFormatting color = isSelected ? ChatFormatting.GREEN : ChatFormatting.AQUA;
-        String levelStr = format.getSetLevel() > 0 ?
-            " (Lv." + format.getSetLevel() + ")" : " (Lv." + pokemon.getLevel() + ")";
-        String orderStr = isSelected ? " [#" + selectionOrder + "]" : "";
-        String leadStr = (selectionOrder == 1) ? " ★LEAD" : "";
-        item.setHoverName(Component.literal(color + displayPokemon.getDisplayName().getString() + levelStr + orderStr + leadStr));
+        int levelStr = format.getSetLevel() > 0 ?
+           format.getSetLevel() : pokemon.getLevel();
+        Component orderStr = isSelected
+            ? Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.name.selected", selectionOrder)
+            : Component.empty();
+        Component leadStr = (selectionOrder == 1)
+            ? Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.name.leader")
+            : Component.empty();
+        item.setHoverName(
+            Component.translatable(
+                "cobblemon_showdown.battle_gui.ally_pokemon.name",
+                displayPokemon.getDisplayName(),
+                levelStr,
+                orderStr,
+                leadStr
+            ).withStyle(color));
 
         ListTag loreTag = new ListTag();
 
         if (isSelected) {
             if (selectionOrder == 1) {
                 loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.GOLD + "★ LEAD POKEMON"))));
+                    Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.leader")
+                        .withStyle(ChatFormatting.GOLD))));
             } else {
                 loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.GREEN + "Battle Position #" + selectionOrder))));
+                    Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.number", selectionOrder)
+                        .withStyle(ChatFormatting.GREEN))));
             }
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + "Click to deselect"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.deselect")
+                    .withStyle(ChatFormatting.YELLOW))));
         } else if (selectedSlots.size() >= maxSelections) {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.RED + "Max selections reached!"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.max_select")
+                    .withStyle(ChatFormatting.RED))));
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Deselect another Pokemon first"))));
+                Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.max_select.tip")
+                    .withStyle(ChatFormatting.GRAY))));
         } else {
-            String hint = selectedSlots.isEmpty() ? "Click to select as LEAD" : "Click to add to team";
-            loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.YELLOW + hint))));
+            Component hint = selectedSlots.isEmpty()
+                ? Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.hint1").withStyle(ChatFormatting.YELLOW)
+                : Component.translatable("cobblemon_showdown.battle_gui.ally_pokemon.hint2").withStyle(ChatFormatting.YELLOW);
+            loreTag.add(StringTag.valueOf(Component.Serializer.toJson(hint)));
         }
 
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
 
-        StringBuilder typeStr = new StringBuilder();
-        typeStr.append(displayPokemon.getPrimaryType().getDisplayName().getString());
+        MutableComponent typeStr = Component.empty().withStyle(ChatFormatting.WHITE);
+        typeStr.append(displayPokemon.getPrimaryType().getDisplayName());
         if (displayPokemon.getSecondaryType() != null) {
-            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName().getString());
+            typeStr.append("/").append(displayPokemon.getSecondaryType().getDisplayName());
         }
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Type: " + ChatFormatting.WHITE + typeStr))));
+            Component.translatable("tooltip.cobblemon_showdown.pokemon_info.type", typeStr)
+                .withStyle(ChatFormatting.GRAY))));
 
         int healthPercent = (int) ((displayPokemon.getCurrentHealth() / (float) displayPokemon.getHp()) * 100);
         ChatFormatting hpColor = healthPercent > 50 ? ChatFormatting.GREEN : (healthPercent > 25 ? ChatFormatting.YELLOW : ChatFormatting.RED);
+        Component hpValue = Component.literal(
+            displayPokemon.getCurrentHealth() + "/" + displayPokemon.getHp() + " (" + healthPercent + "%)"
+        ).withStyle(hpColor);
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "HP: " + hpColor +
-                displayPokemon.getCurrentHealth() + "/" + displayPokemon.getHp() + " (" + healthPercent + "%)"))));
+            Component.translatable("tooltip.cobblemon_showdown.pokemon_info.hp", hpValue).withStyle(ChatFormatting.GRAY))));
 
         if (displayPokemon.getAbility() != null) {
-            String abilityName = displayPokemon.getAbility().getDisplayName();
-            if (!abilityName.isEmpty()) {
+            Component abilityName = Component.literal(displayPokemon.getAbility().getDisplayName())
+                .withStyle(ChatFormatting.GOLD);
+            if (!abilityName.getString().isEmpty()) {
                 loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                    Component.literal(ChatFormatting.GRAY + "Ability: " + ChatFormatting.GOLD + abilityName))));
+                    Component.translatable("tooltip.cobblemon_showdown.pokemon_info.ability", abilityName)
+                        .withStyle(ChatFormatting.GRAY))));
             }
         }
 
         if (displayPokemon.getNature() != null) {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Nature: " + ChatFormatting.LIGHT_PURPLE +
-                    displayPokemon.getNature().getDisplayName()))));
+                Component.translatable("tooltip.cobblemon_showdown.pokemon_info.nature",
+                    Component.literal(displayPokemon.getNature().getDisplayName()).withStyle(ChatFormatting.LIGHT_PURPLE)
+                ).withStyle(ChatFormatting.GRAY))));
         }
 
         if (!displayPokemon.heldItem().isEmpty()) {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.GRAY + "Item: " + ChatFormatting.AQUA +
-                    displayPokemon.heldItem().getHoverName().getString()))));
+                Component.translatable("tooltip.cobblemon_showdown.pokemon_info.item",
+                    displayPokemon.heldItem().getHoverName().copy().withStyle(ChatFormatting.AQUA)
+                ).withStyle(ChatFormatting.GRAY))));
         }
 
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(Component.literal(""))));
         loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-            Component.literal(ChatFormatting.GRAY + "Moves:"))));
+            Component.translatable("tooltip.cobblemon_showdown.pokemon_info.moves").withStyle(ChatFormatting.GRAY))));
         displayPokemon.getMoveSet().getMoves().forEach(move -> {
             loreTag.add(StringTag.valueOf(Component.Serializer.toJson(
-                Component.literal(ChatFormatting.WHITE + "  - " + move.getDisplayName().getString()))));
+                Component.empty().withStyle(ChatFormatting.WHITE)
+                    .append("  - ").append(move.getDisplayName()))));
         });
 
         item.getOrCreateTagElement("display").put("Lore", loreTag);
@@ -512,13 +612,13 @@ public class PartySelectionMenuProvider implements MenuProvider {
         if (pokemon == null) return;
 
         if (playerReady) {
-            selector.sendSystemMessage(Component.literal("You've already readied up! Click the ready button to cancel.")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.is_ready")
                 .withStyle(ChatFormatting.RED));
             return;
         }
 
         if (pokemon.getCurrentHealth() <= 0) {
-            selector.sendSystemMessage(Component.literal("Cannot select a fainted Pokemon!")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.is_faint")
                 .withStyle(ChatFormatting.RED));
             return;
         }
@@ -528,7 +628,7 @@ public class PartySelectionMenuProvider implements MenuProvider {
         } else if (selectedSlots.size() < maxSelections) {
             selectedSlots.add(partySlot);
         } else {
-            selector.sendSystemMessage(Component.literal("Maximum Pokemon selected! Deselect one to change.")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.reach_max")
                 .withStyle(ChatFormatting.YELLOW));
             return;
         }
@@ -540,7 +640,7 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
     private void onBattleOrderSlotClick(PartySelectionMenu menu, int slot) {
         if (playerReady) {
-            selector.sendSystemMessage(Component.literal("You've already readied up! Click the ready button to cancel.")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.is_ready")
                 .withStyle(ChatFormatting.RED));
             return;
         }
@@ -566,18 +666,20 @@ public class PartySelectionMenuProvider implements MenuProvider {
 
     private void onReadyButtonClick() {
         if (selectedSlots.size() != maxSelections) {
-            selector.sendSystemMessage(Component.literal("Select " + maxSelections + " Pokemon before readying up!")
-                .withStyle(ChatFormatting.RED));
+            selector.sendSystemMessage(Component.translatable(
+                "cobblemon_showdown.battle_gui.message.insufficient",
+                    maxSelections
+            ).withStyle(ChatFormatting.RED));
             return;
         }
 
         playerReady = !playerReady;
 
         if (playerReady) {
-            selector.sendSystemMessage(Component.literal("You are now ready! Waiting for opponent...")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.wait_opponent")
                 .withStyle(ChatFormatting.GREEN));
         } else {
-            selector.sendSystemMessage(Component.literal("Ready cancelled. You can modify your selection.")
+            selector.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.message.ready_canceled")
                 .withStyle(ChatFormatting.YELLOW));
         }
 

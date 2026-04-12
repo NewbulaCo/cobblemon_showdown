@@ -27,8 +27,16 @@ public class MessageUtil {
         send(player, Component.literal(message).withStyle(ChatFormatting.GREEN));
     }
 
+    public static void success(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.GREEN));
+    }
+
     public static void error(ServerPlayer player, String message) {
         send(player, Component.literal(message).withStyle(ChatFormatting.RED));
+    }
+
+    public static void error(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.RED));
     }
 
     public static void warning(ServerPlayer player, String message) {
@@ -73,10 +81,10 @@ public class MessageUtil {
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withBold(true)));
     }
 
-    public static MutableComponent header(String title) {
+    public static MutableComponent header(Component title) {
         return Component.literal("=== ")
                 .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(title).withStyle(ChatFormatting.GOLD))
+                .append(Component.empty().withStyle(ChatFormatting.GOLD).append(title))
                 .append(Component.literal(" ===").withStyle(ChatFormatting.GRAY));
     }
 

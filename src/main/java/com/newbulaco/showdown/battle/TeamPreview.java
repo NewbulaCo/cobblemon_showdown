@@ -62,12 +62,12 @@ public class TeamPreview {
     private static void sendTeamPreviewUI(ServerPlayer player) {
         PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
 
-        player.sendSystemMessage(MessageUtil.header("Team Preview"));
-        player.sendSystemMessage(Component.literal("Select your lead Pokemon (")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(SELECTION_TIMEOUT_SECONDS + "s")
-                        .withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(" remaining):").withStyle(ChatFormatting.GRAY)));
+        player.sendSystemMessage(MessageUtil.header(Component.translatable("cobblemon_showdown.battle_preview")));
+        player.sendSystemMessage(Component.translatable(
+            "cobblemon_showdown.battle_preview.select.leader",
+                Component.translatable("cobblemon_showdown.time.second", SELECTION_TIMEOUT_SECONDS)
+                    .withStyle(ChatFormatting.YELLOW)
+            ).withStyle(ChatFormatting.GRAY));
         player.sendSystemMessage(Component.empty());
 
         for (int i = 0; i < 6; i++) {
@@ -79,16 +79,16 @@ public class TeamPreview {
         }
 
         player.sendSystemMessage(Component.empty());
-        player.sendSystemMessage(Component.literal("Your selection is hidden from your opponent.")
+        player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_preview.select.hidden")
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC));
         player.sendSystemMessage(MessageUtil.separator());
     }
 
     private static MutableComponent createPokemonButton(UUID playerUuid, int slot, Pokemon pokemon) {
-        String species = pokemon.getSpecies().getName();
+        Component species = pokemon.getSpecies().getTranslatedName();
         int level = pokemon.getLevel();
-        String nickname = pokemon.getNickname() != null ?
-                pokemon.getNickname().getString() : species;
+        Component nickname = pokemon.getNickname() != null ?
+                pokemon.getNickname() : species;
 
         float healthPercent = (float) pokemon.getCurrentHealth() / pokemon.getHp();
         ChatFormatting healthColor;
@@ -100,42 +100,52 @@ public class TeamPreview {
             healthColor = ChatFormatting.RED;
         }
 
-        MutableComponent hoverText = Component.literal(species)
+        MutableComponent hoverText = species.copy()
                 .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
-                .append(Component.literal("\nLevel: " + level).withStyle(ChatFormatting.GRAY))
-                .append(Component.literal("\nHP: " + pokemon.getCurrentHealth() + "/" + pokemon.getHp())
-                        .withStyle(healthColor));
+                .append(Component.literal("\n")
+                    .append(Component.translatable(
+                        "cobblemon_showdown.battle_preview.pokemon.level",
+                        level
+                    ).withStyle(ChatFormatting.GRAY)))
+                .append(Component.literal("\n")
+                    .append(Component.translatable(
+                        "tooltip.cobblemon_showdown.pokemon_info.hp",
+                        pokemon.getCurrentHealth() + "/" + pokemon.getHp()
+                    ).withStyle(healthColor)));
 
         if (pokemon.getAbility() != null) {
             String abilityName = pokemon.getAbility().getDisplayName();
             if (!abilityName.isEmpty()) {
-                hoverText.append(Component.literal("\nAbility: " + abilityName)
-                        .withStyle(ChatFormatting.AQUA));
+                hoverText.append(Component.literal("\n")
+                    .append(Component.translatable(
+                        "tooltip.cobblemon_showdown.pokemon_info.ability",
+                        abilityName
+                    ).withStyle(ChatFormatting.AQUA)));
             }
         }
 
         if (!pokemon.heldItem().isEmpty()) {
-            hoverText.append(Component.literal("\nItem: " + pokemon.heldItem().getHoverName().getString())
-                    .withStyle(ChatFormatting.GOLD));
+            hoverText.append(Component.literal("\n")
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.pokemon_info.item",
+                    pokemon.heldItem().getHoverName()
+                ).withStyle(ChatFormatting.GOLD)));
         }
 
-        return Component.literal("  [" + (slot + 1) + "] ")
-                .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(nickname)
-                        .withStyle(Style.EMPTY
-                                .withColor(ChatFormatting.WHITE)
-                                .withBold(true)
-                                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
-                                        "/showdown preview_select " + slot))
-                                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))))
-                .append(Component.literal(" Lv." + level)
-                        .withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(" [")
-                        .withStyle(ChatFormatting.DARK_GRAY))
-                .append(Component.literal("" + Math.round(healthPercent * 100) + "%")
-                        .withStyle(healthColor))
-                .append(Component.literal("]")
-                        .withStyle(ChatFormatting.DARK_GRAY));
+        return Component.translatable("cobblemon_showdown.battle_preview.pokemon",
+                slot + 1,
+                nickname.copy().withStyle(Style.EMPTY
+                    .withColor(ChatFormatting.WHITE)
+                    .withBold(true)
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
+                        "/showdown preview_select " + slot))
+                    .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText))),
+                level,
+                Component.empty().withStyle(ChatFormatting.DARK_GRAY)
+                    .append("[")
+                    .append(Component.literal(Math.round(healthPercent * 100) + "%").withStyle(healthColor))
+                    .append("]")
+            ).withStyle(ChatFormatting.GRAY);
     }
 
     public static boolean selectLead(ServerPlayer player, int slot) {
@@ -143,7 +153,7 @@ public class TeamPreview {
         TeamPreviewSession session = activeSessions.get(playerUuid);
 
         if (session == null) {
-            MessageUtil.error(player, "You don't have an active team preview.");
+            MessageUtil.error(player, Component.translatable("cobblemon_showdown.battle_preview.select.invalid"));
             return false;
         }
 
@@ -151,20 +161,22 @@ public class TeamPreview {
         Pokemon pokemon = party.get(slot);
 
         if (pokemon == null) {
-            MessageUtil.error(player, "No Pokemon in that slot.");
+            MessageUtil.error(player, Component.translatable("cobblemon_showdown.battle_preview.select.empty_slot"));
             return false;
         }
 
         if (pokemon.getCurrentHealth() <= 0) {
-            MessageUtil.error(player, "Cannot select a fainted Pokemon as lead.");
+            MessageUtil.error(player, Component.translatable("cobblemon_showdown.battle_preview.select.fainted_slot"));
             return false;
         }
 
         session.setSelectedSlot(slot);
         session.setSelectedPokemonUuid(pokemon.getUuid());
 
-        MessageUtil.success(player, "Selected " + pokemon.getSpecies().getName() + " as your lead!");
-        player.sendSystemMessage(Component.literal("Waiting for opponent to select...")
+        MessageUtil.success(player, Component.translatable(
+            "cobblemon_showdown.battle_preview.select.success",
+            pokemon.getSpecies().getTranslatedName()));
+        player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_preview.select.wait")
                 .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
 
         if (session.getLinkedSession() != null && session.getLinkedSession().hasSelected()) {

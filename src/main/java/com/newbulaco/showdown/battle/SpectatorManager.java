@@ -2,6 +2,7 @@ package com.newbulaco.showdown.battle;
 
 import com.newbulaco.showdown.network.ShowdownNetwork;
 import com.newbulaco.showdown.network.packets.SpectatorStatePacket;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,17 +28,20 @@ public class SpectatorManager {
 
     public boolean addSpectator(ServerPlayer player) {
         if (!spectatingEnabled) {
-            player.sendSystemMessage(Component.literal("§cSpectating is disabled for this battle"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.disabled")
+                .withStyle(ChatFormatting.RED));
             return false;
         }
 
         if (battle.isParticipant(player.getUUID())) {
-            player.sendSystemMessage(Component.literal("§cYou cannot spectate your own battle"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.self")
+                .withStyle(ChatFormatting.RED));
             return false;
         }
 
         if (battle.isCompleted()) {
-            player.sendSystemMessage(Component.literal("§cThis battle has already ended"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.ended_battle")
+                .withStyle(ChatFormatting.RED));
             return false;
         }
 
@@ -45,14 +49,17 @@ public class SpectatorManager {
             LOGGER.info("Player {} is now spectating battle {}",
                     player.getName().getString(), battle.getBattleId());
 
-            player.sendSystemMessage(Component.literal(String.format(
-                    "§aYou are now spectating %s vs %s",
-                    battle.getPlayer1().getName().getString(),
-                    battle.getPlayer2().getName().getString()
-            )));
+            player.sendSystemMessage(Component.translatable(
+                "cobblemon_showdown.battle_spectate.start",
+                    battle.getPlayer1().getName(),
+                    battle.getPlayer2().getName()
+            ).withStyle(ChatFormatting.GREEN));
 
             if (notifyBattlersOfSpectators) {
-                notifyBattlers(String.format("§7%s is now spectating", player.getName().getString()));
+                notifyBattlers(Component.translatable(
+                    "cobblemon_showdown.battle_spectate.spectator_join",
+                    player.getName()
+                ).withStyle(ChatFormatting.GRAY));
             }
 
             sendSpectatorJoinedPacket(player);
@@ -68,10 +75,14 @@ public class SpectatorManager {
             LOGGER.info("Player {} stopped spectating battle {}",
                     player.getName().getString(), battle.getBattleId());
 
-            player.sendSystemMessage(Component.literal("§7You stopped spectating the battle"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.stop")
+                .withStyle(ChatFormatting.GRAY));
 
             if (notifyBattlersOfSpectators) {
-                notifyBattlers(String.format("§7%s stopped spectating", player.getName().getString()));
+                notifyBattlers(Component.translatable(
+                    "cobblemon_showdown.battle_spectate.spectator_leave",
+                    player.getName().getString()
+                ).withStyle(ChatFormatting.GRAY));
             }
 
             SpectatorStatePacket leftPacket = SpectatorStatePacket.left(battle.getBattleId());
@@ -102,7 +113,8 @@ public class SpectatorManager {
         for (UUID spectatorUuid : new HashSet<>(spectators)) {
             ServerPlayer spectator = server.getPlayerList().getPlayer(spectatorUuid);
             if (spectator != null) {
-                spectator.sendSystemMessage(Component.literal("§7The battle you were watching has ended"));
+                spectator.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.end")
+                    .withStyle(ChatFormatting.GRAY));
 
                 SpectatorStatePacket leftPacket = SpectatorStatePacket.left(battle.getBattleId());
                 ShowdownNetwork.sendToPlayer(leftPacket, spectator);
@@ -141,12 +153,12 @@ public class SpectatorManager {
         this.notifyBattlersOfSpectators = notify;
     }
 
-    private void notifyBattlers(String message) {
+    private void notifyBattlers(Component message) {
         if (battle.getPlayer1() != null) {
-            battle.getPlayer1().sendSystemMessage(Component.literal(message));
+            battle.getPlayer1().sendSystemMessage(message);
         }
         if (battle.getPlayer2() != null) {
-            battle.getPlayer2().sendSystemMessage(Component.literal(message));
+            battle.getPlayer2().sendSystemMessage(message);
         }
     }
 
@@ -166,7 +178,10 @@ public class SpectatorManager {
         for (UUID spectatorUuid : spectators) {
             ServerPlayer spectator = server.getPlayerList().getPlayer(spectatorUuid);
             if (spectator != null) {
-                spectator.sendSystemMessage(Component.literal("§7[Battle] §f" + message));
+                spectator.sendSystemMessage(Component.translatable(
+                    "cobblemon_showdown.battle_spectate.message.prefix",
+                    Component.literal(message).withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
                 ShowdownNetwork.sendToPlayer(messagePacket, spectator);
             }
         }
@@ -190,8 +205,14 @@ public class SpectatorManager {
         for (UUID spectatorUuid : spectators) {
             ServerPlayer spectator = server.getPlayerList().getPlayer(spectatorUuid);
             if (spectator != null) {
-                spectator.sendSystemMessage(Component.literal(
-                        "§7[Battle] §f" + ownerName + "'s " + pokemonName + " fainted!"));
+                spectator.sendSystemMessage(Component.translatable(
+                    "cobblemon_showdown.battle_spectate.message.prefix",
+                    Component.translatable(
+                        "cobblemon_showdown.battle_spectate.message.fainted",
+                        ownerName,
+                        pokemonName
+                    ).withStyle(ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
                 ShowdownNetwork.sendToPlayer(faintPacket, spectator);
             }
         }
