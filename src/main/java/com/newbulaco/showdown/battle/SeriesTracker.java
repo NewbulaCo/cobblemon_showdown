@@ -2,6 +2,8 @@ package com.newbulaco.showdown.battle;
 
 import com.newbulaco.showdown.format.Format;
 import com.newbulaco.showdown.util.MessageUtil;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,12 +215,12 @@ public class SeriesTracker {
     }
 
     public static void sendSeriesStatus(ServerPlayer player1, ServerPlayer player2, Series series) {
-        String status = String.format("Series: %s vs %s - Score: %s (Best of %d, first to %d wins)",
-                player1.getName().getString(),
-                player2.getName().getString(),
-                series.getScoreString(),
-                series.getBestOf(),
-                series.getWinsNeeded());
+        MutableComponent status = Component.translatable("cobblemon_showdown.showdown_battle.series.stat",
+            player1.getName(),
+            player2.getName(),
+            series.getScoreString(),
+            series.getBestOf(),
+            series.getWinsNeeded());
 
         MessageUtil.info(player1, status);
         MessageUtil.info(player2, status);
@@ -226,16 +228,20 @@ public class SeriesTracker {
 
     public static void sendGameResult(ServerPlayer winner, ServerPlayer loser, Series series) {
         if (series.isCompleted()) {
-            MessageUtil.success(winner, "You won the series " + series.getScoreString() + "!");
-            MessageUtil.error(loser, "You lost the series " + series.getScoreString());
+            MessageUtil.success(winner, Component.translatable(
+                "cobblemon_showdown.showdown_battle.series.win",
+                series.getScoreString()));
+            MessageUtil.error(loser, Component.translatable(
+                "cobblemon_showdown.showdown_battle.series.lose",
+                series.getScoreString()));
         } else {
-            String status = String.format("Game %d complete! Series score: %s",
-                    series.getGamesPlayed(), series.getScoreString());
-            MessageUtil.info(winner, status + " - You lead!");
+            MutableComponent status = Component.translatable("cobblemon_showdown.showdown_battle.series.part",
+                series.getGamesPlayed(), series.getScoreString());
+            MessageUtil.info(winner, status.copy().append(Component.translatable("cobblemon_showdown.showdown_battle.series.part.winning")));
             MessageUtil.info(loser, status);
 
             int gamesNeeded = series.getWinsNeeded() - series.getWins(loser.getUUID());
-            MessageUtil.info(loser, "You need " + gamesNeeded + " more win(s) to win the series.");
+            MessageUtil.info(loser, Component.translatable("cobblemon_showdown.showdown_battle.series.part.losing", gamesNeeded));
         }
     }
 

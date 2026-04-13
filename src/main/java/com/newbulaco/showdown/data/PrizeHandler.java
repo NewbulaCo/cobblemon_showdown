@@ -1,6 +1,7 @@
 package com.newbulaco.showdown.data;
 
 import com.newbulaco.showdown.util.MessageUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -16,7 +17,7 @@ public class PrizeHandler {
         Item item = getItem(itemId);
         if (item == null) {
             LOGGER.error("Could not find item: {}", itemId);
-            MessageUtil.error(player, "Prize distribution failed: unknown item " + itemId);
+            MessageUtil.error(player, Component.translatable("cobblemon_showdown.showdown_battle.prize.unknown_item", itemId));
             return false;
         }
 
@@ -56,8 +57,8 @@ public class PrizeHandler {
 
         if (taken > 0) {
             giveItem(winner, itemId, taken);
-            MessageUtil.success(winner, "You won " + taken + "x " + getItemDisplayName(itemId) + " from the battle!");
-            MessageUtil.warning(loser, "You lost " + taken + "x " + getItemDisplayName(itemId) + " from the battle.");
+            MessageUtil.success(winner, Component.translatable("cobblemon_showdown.showdown_battle.prize.win", taken, getItemDisplayName(itemId)));
+            MessageUtil.warning(loser, Component.translatable("cobblemon_showdown.showdown_battle.prize.lose", taken, getItemDisplayName(itemId)));
         }
     }
 
@@ -122,12 +123,12 @@ public class PrizeHandler {
         return ForgeRegistries.ITEMS.getValue(location);
     }
 
-    public static String getItemDisplayName(String itemId) {
+    public static Component getItemDisplayName(String itemId) {
         Item item = getItem(itemId);
         if (item == null) {
-            return itemId;
+            return Component.literal(itemId);
         }
-        return item.getDescription().getString();
+        return item.getDescription();
     }
 
     public static boolean isValidItem(String itemId) {

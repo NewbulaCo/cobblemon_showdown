@@ -20,10 +20,7 @@ import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -254,26 +251,29 @@ public class DtCommand {
     private static void showPokemonData(ServerPlayer player, Species species, FormData form) {
         player.sendSystemMessage(Component.literal("=== ")
                 .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(species.getName())
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
+                .append(species.getTranslatedName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
                 .append(form.getName().equals("Normal") || form.getName().isEmpty() ?
                         Component.empty() :
                         Component.literal(" (" + form.getName() + ")").withStyle(ChatFormatting.GRAY))
                 .append(Component.literal(" ===").withStyle(ChatFormatting.GOLD)));
 
-        MutableComponent typeComp = Component.literal("Type: ").withStyle(ChatFormatting.GRAY);
+        MutableComponent typesComp = Component.empty();
         List<ElementalType> types = new ArrayList<>();
         form.getTypes().forEach(types::add);
         for (int i = 0; i < types.size(); i++) {
-            typeComp.append(createClickableType(types.get(i)));
+            typesComp.append(createClickableType(types.get(i)));
             if (i < types.size() - 1) {
-                typeComp.append(Component.literal("/").withStyle(ChatFormatting.GRAY));
+                typesComp.append(Component.literal("/").withStyle(ChatFormatting.GRAY));
             }
         }
+        MutableComponent typeComp = Component.translatable(
+            "tooltip.cobblemon_showdown.pokemon_info.type",
+            typesComp
+        ).withStyle(ChatFormatting.GRAY);
         player.sendSystemMessage(typeComp);
 
         Map<Stat, Integer> stats = form.getBaseStats();
-        player.sendSystemMessage(Component.literal("Base Stats:").withStyle(ChatFormatting.GRAY));
+        player.sendSystemMessage(Component.translatable("tooltip.cobblemon_showdown.pokemon_info.base_stats").withStyle(ChatFormatting.GRAY));
 
         int hp = stats.getOrDefault(Stats.HP, 0);
         int atk = stats.getOrDefault(Stats.ATTACK, 0);
@@ -283,24 +283,18 @@ public class DtCommand {
         int spe = stats.getOrDefault(Stats.SPEED, 0);
         int bst = hp + atk + def + spa + spd + spe;
 
-        player.sendSystemMessage(Component.literal("  HP: ").withStyle(ChatFormatting.RED)
-                .append(Component.literal(String.valueOf(hp)).withStyle(getStatColor(hp)))
-                .append(Component.literal(" | Atk: ").withStyle(ChatFormatting.GOLD))
-                .append(Component.literal(String.valueOf(atk)).withStyle(getStatColor(atk)))
-                .append(Component.literal(" | Def: ").withStyle(ChatFormatting.YELLOW))
-                .append(Component.literal(String.valueOf(def)).withStyle(getStatColor(def))));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.pokemon_info.stats",
+            Component.literal(String.valueOf(hp)).withStyle(getStatColor(hp)),
+            Component.literal(String.valueOf(atk)).withStyle(getStatColor(atk)),
+            Component.literal(String.valueOf(def)).withStyle(getStatColor(def)),
+            Component.literal(String.valueOf(spa)).withStyle(getStatColor(spa)),
+            Component.literal(String.valueOf(spd)).withStyle(getStatColor(spd)),
+            Component.literal(String.valueOf(spe)).withStyle(getStatColor(spe)),
+            Component.literal(String.valueOf(bst)).withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
 
-        player.sendSystemMessage(Component.literal("  SpA: ").withStyle(ChatFormatting.BLUE)
-                .append(Component.literal(String.valueOf(spa)).withStyle(getStatColor(spa)))
-                .append(Component.literal(" | SpD: ").withStyle(ChatFormatting.GREEN))
-                .append(Component.literal(String.valueOf(spd)).withStyle(getStatColor(spd)))
-                .append(Component.literal(" | Spe: ").withStyle(ChatFormatting.LIGHT_PURPLE))
-                .append(Component.literal(String.valueOf(spe)).withStyle(getStatColor(spe))));
-
-        player.sendSystemMessage(Component.literal("  BST: ").withStyle(ChatFormatting.WHITE)
-                .append(Component.literal(String.valueOf(bst)).withStyle(ChatFormatting.AQUA)));
-
-        MutableComponent abilityComp = Component.literal("Abilities: ").withStyle(ChatFormatting.GRAY);
+        MutableComponent abilitiesComp = Component.empty();
         var abilities = form.getAbilities();
         List<AbilityTemplate> abilityTemplates = new ArrayList<>();
         abilities.forEach(pa -> {
@@ -310,14 +304,18 @@ public class DtCommand {
         });
         for (int i = 0; i < abilityTemplates.size(); i++) {
             AbilityTemplate ability = abilityTemplates.get(i);
-            abilityComp.append(createClickableDt(
-                    formatDisplayName(ability.getName()),
+            abilitiesComp.append(createClickableDt(
+                    Component.translatable(ability.getDisplayName()),
                     ability.getName(),
                     ChatFormatting.WHITE));
             if (i < abilityTemplates.size() - 1) {
-                abilityComp.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
+                abilitiesComp.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
             }
         }
+        MutableComponent abilityComp = Component.translatable(
+            "tooltip.cobblemon_showdown.pokemon_info.ability",
+            abilitiesComp
+        ).withStyle(ChatFormatting.GRAY);
         player.sendSystemMessage(abilityComp);
     }
 
@@ -330,41 +328,53 @@ public class DtCommand {
     }
 
     private static void showMoveData(ServerPlayer player, MoveTemplate move) {
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(formatDisplayName(move.getName()))
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.move",
+            move.getDisplayName().copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+        ).withStyle(ChatFormatting.GOLD));
 
-        MutableComponent typeCat = Component.literal("Type: ").withStyle(ChatFormatting.GRAY);
-        typeCat.append(createClickableType(move.getElementalType()));
-        typeCat.append(Component.literal(" | Category: ").withStyle(ChatFormatting.GRAY));
+        MutableComponent typeCat = Component.empty().withStyle(ChatFormatting.GRAY);
+        typeCat.append(Component.translatable("tooltip.cobblemon_showdown.move_info.type",
+            createClickableType(move.getElementalType())));
+        typeCat.append(Component.literal(" | "));
         String category = move.getDamageCategory().getName();
         ChatFormatting catColor = switch (category.toLowerCase()) {
             case "physical" -> ChatFormatting.RED;
             case "special" -> ChatFormatting.BLUE;
             default -> ChatFormatting.GRAY;
         };
-        typeCat.append(Component.literal(category).withStyle(catColor));
+        typeCat.append(Component.translatable("tooltip.cobblemon_showdown.move_info.category",
+            move.getDamageCategory().getDisplayName().copy().withStyle(catColor)));
         player.sendSystemMessage(typeCat);
 
-        MutableComponent stats = Component.literal("Power: ").withStyle(ChatFormatting.GRAY);
+        MutableComponent stats = Component.empty().withStyle(ChatFormatting.GRAY);
         double power = move.getPower();
-        stats.append(Component.literal(power > 0 ? String.valueOf((int)power) : "-").withStyle(ChatFormatting.WHITE));
-        stats.append(Component.literal(" | Accuracy: ").withStyle(ChatFormatting.GRAY));
+        stats.append(Component.translatable(
+            "tooltip.cobblemon_showdown.move_info.power",
+            Component.literal(power > 0 ? String.valueOf((int)power) : "-").withStyle(ChatFormatting.WHITE)));
+        stats.append(Component.literal(" | "));
         double accuracy = move.getAccuracy();
-        stats.append(Component.literal(accuracy > 0 ? String.valueOf((int)accuracy) : "-").withStyle(ChatFormatting.WHITE));
-        stats.append(Component.literal(" | PP: ").withStyle(ChatFormatting.GRAY));
-        stats.append(Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE));
+        stats.append(Component.translatable(
+            "tooltip.cobblemon_showdown.move_info.accuracy",
+            Component.literal(accuracy > 0 ? String.valueOf((int)accuracy) : "-").withStyle(ChatFormatting.WHITE)));
+        stats.append(Component.literal(" | "));
+        stats.append(Component.translatable(
+            "tooltip.cobblemon_showdown.move_info.pp",
+            Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE)));
         player.sendSystemMessage(stats);
 
-        String desc = getMoveDescription(move);
-        if (desc != null && !desc.isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(desc).withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)));
+        Component desc = getMoveDescription(move);
+        if (desc != null && !desc.getString().isEmpty()) {
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                desc.copy().withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY));
         } else {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal("No description available.").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                Component.translatable("command.cobblemon_showdown.dt.description.no_desc")
+                    .withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY)
+            ).withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -377,19 +387,23 @@ public class DtCommand {
     }
 
     private static void showAbilityData(ServerPlayer player, AbilityTemplate ability) {
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(formatDisplayName(ability.getName()))
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" (Ability) ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.ability",
+            Component.translatable(ability.getDisplayName()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+        ).withStyle(ChatFormatting.GOLD));
 
         String desc = getAbilityDescription(ability);
         if (desc != null && !desc.isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(desc).withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                    Component.literal(desc).withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)
+                ).withStyle(ChatFormatting.GRAY));
         } else {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal("No description available.").withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                Component.translatable("command.cobblemon_showdown.dt.description.no_desc")
+                    .withStyle(ChatFormatting.ITALIC, ChatFormatting.DARK_GRAY)
+            ).withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -402,10 +416,10 @@ public class DtCommand {
     }
 
     private static void showTypeData(ServerPlayer player, ElementalType type) {
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(createClickableType(type))
-                .append(Component.literal(" Type ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.type",
+                createClickableType(type)
+        ).withStyle(ChatFormatting.GOLD));
 
         String typeName = type.getName().toLowerCase();
 
@@ -422,18 +436,25 @@ public class DtCommand {
             }
         }
 
-        player.sendSystemMessage(Component.literal("Attacking:").withStyle(ChatFormatting.GRAY, ChatFormatting.UNDERLINE));
+        player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.dt.type.attack")
+            .withStyle(ChatFormatting.GRAY, ChatFormatting.UNDERLINE));
         if (!superEffective.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  2x vs: ").withStyle(ChatFormatting.GREEN)
-                    .append(createClickableTypeList(superEffective)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.attack.super",
+                createClickableTypeList(superEffective)
+            ).withStyle(ChatFormatting.GREEN));
         }
         if (!notVeryEffective.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  0.5x vs: ").withStyle(ChatFormatting.RED)
-                    .append(createClickableTypeList(notVeryEffective)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.attack.half",
+                createClickableTypeList(notVeryEffective)
+            ).withStyle(ChatFormatting.RED));
         }
         if (!noEffect.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  0x vs: ").withStyle(ChatFormatting.DARK_GRAY)
-                    .append(createClickableTypeList(noEffect)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.attack.immune",
+                createClickableTypeList(noEffect)
+            ).withStyle(ChatFormatting.DARK_GRAY));
         }
 
         List<String> weakTo = new ArrayList<>();
@@ -449,18 +470,25 @@ public class DtCommand {
             }
         }
 
-        player.sendSystemMessage(Component.literal("Defending:").withStyle(ChatFormatting.GRAY, ChatFormatting.UNDERLINE));
+        player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.dt.type.defend")
+            .withStyle(ChatFormatting.GRAY, ChatFormatting.UNDERLINE));
         if (!weakTo.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  Weak to: ").withStyle(ChatFormatting.RED)
-                    .append(createClickableTypeList(weakTo)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.defend.super",
+                createClickableTypeList(weakTo)
+            ).withStyle(ChatFormatting.RED));
         }
         if (!resistantTo.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  Resists: ").withStyle(ChatFormatting.GREEN)
-                    .append(createClickableTypeList(resistantTo)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.defend.half",
+                createClickableTypeList(resistantTo)
+            ).withStyle(ChatFormatting.GREEN));
         }
         if (!immuneTo.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  Immune to: ").withStyle(ChatFormatting.AQUA)
-                    .append(createClickableTypeList(immuneTo)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.type.defend.immune",
+                createClickableTypeList(immuneTo)
+            ).withStyle(ChatFormatting.AQUA));
         }
     }
 
@@ -494,48 +522,62 @@ public class DtCommand {
 
     private static void showSimpleTMsData(ServerPlayer player, Item item, MoveTemplate move, boolean isTR) {
         ItemStack stack = new ItemStack(item);
-        String displayName = stack.getHoverName().getString();
-        String itemType = isTR ? "TR" : "TM";
+        Component displayName = stack.getHoverName();
+        Component itemType = isTR
+            ? Component.translatable("command.cobblemon_showdown.dt.simple_tms.tr")
+            : Component.translatable("command.cobblemon_showdown.dt.simple_tms.tm");
 
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(displayName)
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" (" + itemType + ") ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.simple_tms",
+                displayName.copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD),
+                itemType
+            ).withStyle(ChatFormatting.GOLD));
 
-        MutableComponent teachesComp = Component.literal("Teaches: ").withStyle(ChatFormatting.GRAY);
-        teachesComp.append(createClickableDt(
-                formatDisplayName(move.getName()),
+        MutableComponent teachesComp = Component.translatable(
+            "command.cobblemon_showdown.dt.simple_tms.teach",
+            createClickableDt(
+                move.getDisplayName(),
                 move.getName(),
-                ChatFormatting.AQUA, ChatFormatting.BOLD));
+                ChatFormatting.AQUA, ChatFormatting.BOLD)
+        ).withStyle(ChatFormatting.GRAY);
         player.sendSystemMessage(teachesComp);
 
-        MutableComponent typeCat = Component.literal("Type: ").withStyle(ChatFormatting.GRAY);
-        typeCat.append(createClickableType(move.getElementalType()));
-        typeCat.append(Component.literal(" | Category: ").withStyle(ChatFormatting.GRAY));
+        MutableComponent typeCat = Component.empty().withStyle(ChatFormatting.GRAY);
+        typeCat.append(Component.translatable(
+            "tooltip.cobblemon_showdown.move_info.type",
+            createClickableType(move.getElementalType())));
+        typeCat.append(Component.literal(" | "));
         String category = move.getDamageCategory().getName();
         ChatFormatting catColor = switch (category.toLowerCase()) {
             case "physical" -> ChatFormatting.RED;
             case "special" -> ChatFormatting.BLUE;
             default -> ChatFormatting.GRAY;
         };
-        typeCat.append(Component.literal(category).withStyle(catColor));
+        typeCat.append(Component.translatable(
+            "tooltip.cobblemon_showdown.move_info.category",
+            move.getDamageCategory().getDisplayName().copy().withStyle(catColor)
+        ));
         player.sendSystemMessage(typeCat);
 
-        MutableComponent stats = Component.literal("Power: ").withStyle(ChatFormatting.GRAY);
+        MutableComponent stats = Component.empty().withStyle(ChatFormatting.GRAY);
         double power = move.getPower();
-        stats.append(Component.literal(power > 0 ? String.valueOf((int)power) : "-").withStyle(ChatFormatting.WHITE));
-        stats.append(Component.literal(" | Accuracy: ").withStyle(ChatFormatting.GRAY));
+        stats.append(Component.translatable("tooltip.cobblemon_showdown.move_info.power",
+            Component.literal(power > 0 ? String.valueOf((int) power) : "-").withStyle(ChatFormatting.WHITE)));
+        stats.append(Component.literal(" | "));
         double accuracy = move.getAccuracy();
-        stats.append(Component.literal(accuracy > 0 ? String.valueOf((int)accuracy) : "-").withStyle(ChatFormatting.WHITE));
-        stats.append(Component.literal(" | PP: ").withStyle(ChatFormatting.GRAY));
-        stats.append(Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE));
+        stats.append(Component.translatable("tooltip.cobblemon_showdown.move_info.accuracy",
+            Component.literal(accuracy > 0 ? String.valueOf((int) accuracy) : "-").withStyle(ChatFormatting.WHITE)));
+        stats.append(Component.literal(" | "));
+        stats.append(Component.translatable("tooltip.cobblemon_showdown.move_info.pp",
+            Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE)));
         player.sendSystemMessage(stats);
 
-        String desc = getMoveDescription(move);
-        if (desc != null && !desc.isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(desc).withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)));
+        Component desc = getMoveDescription(move);
+        if (desc != null && !desc.getString().isEmpty()) {
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                desc.copy().withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY));
         }
 
         player.sendSystemMessage(Component.empty());
@@ -578,55 +620,60 @@ public class DtCommand {
             }
         }
 
-        player.sendSystemMessage(Component.literal("Your Party:").withStyle(ChatFormatting.AQUA, ChatFormatting.UNDERLINE));
+        player.sendSystemMessage(Component.translatable("tooltip.cobblemon_showdown.party_learner")
+            .withStyle(ChatFormatting.AQUA, ChatFormatting.UNDERLINE));
 
         if (!canLearn.isEmpty()) {
-            MutableComponent learnComp = Component.literal("  Can learn: ").withStyle(ChatFormatting.GREEN);
+            MutableComponent learnComp = Component.empty();
             for (int i = 0; i < canLearn.size(); i++) {
                 Pokemon pokemon = canLearn.get(i);
                 learnComp.append(createClickableDt(
-                        pokemon.getSpecies().getName(),
+                        pokemon.getSpecies().getTranslatedName(),
                         pokemon.getSpecies().getName(),
                         ChatFormatting.WHITE));
                 if (i < canLearn.size() - 1) {
                     learnComp.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                 }
             }
-            player.sendSystemMessage(learnComp);
+            player.sendSystemMessage(Component.literal("  ").withStyle(ChatFormatting.GREEN)
+                .append(Component.translatable("tooltip.cobblemon_showdown.party_learner.can_learn", learnComp)));
         }
 
         if (!alreadyKnows.isEmpty()) {
-            MutableComponent knowsComp = Component.literal("  Already knows: ").withStyle(ChatFormatting.YELLOW);
+            MutableComponent knowsComp = Component.empty();
             for (int i = 0; i < alreadyKnows.size(); i++) {
                 Pokemon pokemon = alreadyKnows.get(i);
                 knowsComp.append(createClickableDt(
-                        pokemon.getSpecies().getName(),
+                        pokemon.getSpecies().getTranslatedName(),
                         pokemon.getSpecies().getName(),
                         ChatFormatting.WHITE));
                 if (i < alreadyKnows.size() - 1) {
                     knowsComp.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                 }
             }
-            player.sendSystemMessage(knowsComp);
+            player.sendSystemMessage(Component.literal("  ").withStyle(ChatFormatting.YELLOW)
+                .append(Component.translatable("tooltip.cobblemon_showdown.party_learner.already_knows", knowsComp)));
         }
 
         if (!cannotLearn.isEmpty()) {
-            MutableComponent cantComp = Component.literal("  Cannot learn: ").withStyle(ChatFormatting.RED);
+            MutableComponent cantComp = Component.empty();
             for (int i = 0; i < cannotLearn.size(); i++) {
                 Pokemon pokemon = cannotLearn.get(i);
                 cantComp.append(createClickableDt(
-                        pokemon.getSpecies().getName(),
+                        pokemon.getSpecies().getTranslatedName(),
                         pokemon.getSpecies().getName(),
                         ChatFormatting.DARK_GRAY));
                 if (i < cannotLearn.size() - 1) {
                     cantComp.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                 }
             }
-            player.sendSystemMessage(cantComp);
+            player.sendSystemMessage(Component.literal("  ").withStyle(ChatFormatting.RED)
+                .append(Component.translatable("tooltip.cobblemon_showdown.party_learner.cannot_learn", cantComp)));
         }
 
         if (canLearn.isEmpty() && alreadyKnows.isEmpty() && cannotLearn.isEmpty()) {
-            player.sendSystemMessage(Component.literal("  No Pokemon in party").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            player.sendSystemMessage(Component.literal("  ").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)
+                .append(Component.translatable("tooltip.cobblemon_showdown.party_learner.nobody")));
         }
     }
 
@@ -652,40 +699,45 @@ public class DtCommand {
 
     private static void showItemData(ServerPlayer player, Item item) {
         ItemStack stack = new ItemStack(item);
-        String displayName = stack.getHoverName().getString();
+        Component displayName = stack.getHoverName();
 
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(displayName)
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" (Item) ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.item",
+                displayName.copy().withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
+            .withStyle(ChatFormatting.GOLD));
 
         List<net.minecraft.network.chat.Component> tooltips = new ArrayList<>();
         stack.getItem().appendHoverText(stack, null, tooltips, net.minecraft.world.item.TooltipFlag.NORMAL);
 
         if (!tooltips.isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(tooltips.get(0).copy().withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                tooltips.get(0).copy().withStyle(ChatFormatting.ITALIC, ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY));
         } else {
-            player.sendSystemMessage(Component.literal("No description available.").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.dt.description.no_desc")
+                .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
     }
 
     private static void showNoMatchFound(ServerPlayer player, String query) {
-        player.sendSystemMessage(Component.literal("No data found for: ").withStyle(ChatFormatting.RED)
-                .append(Component.literal(query).withStyle(ChatFormatting.WHITE)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.cannot_find",
+                Component.literal(query).withStyle(ChatFormatting.WHITE)
+        ).withStyle(ChatFormatting.RED));
 
         List<String> similar = findSimilarMatches(query, 5);
         if (!similar.isEmpty()) {
-            MutableComponent suggestions = Component.literal("Did you mean: ").withStyle(ChatFormatting.GRAY);
+            MutableComponent suggestions = Component.empty();
             for (int i = 0; i < similar.size(); i++) {
                 String suggestion = similar.get(i);
-                suggestions.append(createClickableDt(suggestion, suggestion, ChatFormatting.YELLOW));
+                suggestions.append(createClickableDt(Component.literal(suggestion), suggestion, ChatFormatting.YELLOW));
                 if (i < similar.size() - 1) {
                     suggestions.append(Component.literal(", ").withStyle(ChatFormatting.GRAY));
                 }
             }
-            player.sendSystemMessage(suggestions);
+            player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.dt.cannot_find.msg", suggestions)
+                .withStyle(ChatFormatting.GRAY));
         }
     }
 
@@ -854,38 +906,39 @@ public class DtCommand {
         return result.toString().trim();
     }
 
-    private static MutableComponent createClickableDt(String displayText, String query, ChatFormatting... styles) {
-        MutableComponent component = Component.literal(displayText);
+    private static MutableComponent createClickableDt(Component displayText, String query, ChatFormatting... styles) {
+        MutableComponent component = displayText.copy();
         for (ChatFormatting style : styles) {
             component = component.withStyle(style);
         }
         component = component.withStyle(style -> style
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/showdown dt " + query))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                        Component.literal("Click to search: " + displayText).withStyle(ChatFormatting.YELLOW))));
+                        Component.translatable("command.cobblemon_showdown.dt.clickable", displayText).withStyle(ChatFormatting.YELLOW))));
         return component;
     }
 
     private static MutableComponent createClickableType(ElementalType type) {
-        ChatFormatting color = getTypeColor(type.getName());
-        String displayName = formatDisplayName(type.getName());
-        return Component.literal(displayName)
-                .withStyle(color, ChatFormatting.BOLD)
+        int color = type.getHue();
+        Component displayName = type.getDisplayName();
+        return displayName.copy()
+                .setStyle(Style.EMPTY.withBold(true).withColor(color))
                 .withStyle(style -> style
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/showdown dt " + type.getName()))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.literal("Click to view type info").withStyle(ChatFormatting.YELLOW))));
+                                Component.translatable("command.cobblemon_showdown.dt.clickable.type_info").withStyle(ChatFormatting.YELLOW))));
     }
 
     private static MutableComponent createClickableTypeByName(String typeName) {
-        ChatFormatting color = getTypeColor(typeName);
-        String displayName = formatDisplayName(typeName);
-        return Component.literal(displayName)
-                .withStyle(color)
+        ElementalType type = ElementalTypes.INSTANCE.get(typeName);
+        int color = type != null ? type.getHue() : getTypeColor(typeName).getColor();
+        Component displayName = type != null ? type.getDisplayName() : Component.literal(formatDisplayName(typeName));
+        return displayName.copy()
+                .setStyle(Style.EMPTY.withColor(color))
                 .withStyle(style -> style
                         .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/showdown dt " + typeName))
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.literal("Click to view type info").withStyle(ChatFormatting.YELLOW))));
+                                Component.translatable("command.cobblemon_showdown.dt.clickable.type_info").withStyle(ChatFormatting.YELLOW))));
     }
 
     private static MutableComponent createClickableTypeList(List<String> typeNames) {
@@ -931,22 +984,22 @@ public class DtCommand {
         return ChatFormatting.RED;
     }
 
-    private static String getMoveDescription(MoveTemplate move) {
+    private static Component getMoveDescription(MoveTemplate move) {
         // modifications from other mods override the default description
         MoveModification mod = ShowdownAPI.getMoveModification(move.getName());
         if (mod != null && mod.getDescription() != null) {
-            return mod.getDescription();
+            return Component.literal(mod.getDescription());
         }
 
         CustomMove custom = ShowdownAPI.getMove(move.getName());
         if (custom != null && !custom.getDescription().isEmpty()) {
-            return custom.getDescription();
+            return Component.literal(custom.getDescription());
         }
 
         try {
             var desc = move.getDescription();
             if (desc != null) {
-                return desc.getString();
+                return desc;
             }
         } catch (Exception e) {
             // description not available
@@ -1140,55 +1193,73 @@ public class DtCommand {
     }
 
     private static void showCustomAbilityData(ServerPlayer player, CustomAbility ability) {
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(ability.getDisplayName())
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" (Ability) ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.ability",
+                Component.literal(ability.getDisplayName()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+            ).withStyle(ChatFormatting.GOLD));
 
-        player.sendSystemMessage(Component.literal("Mod: ").withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(ability.getModId()).withStyle(ChatFormatting.AQUA)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.mod",
+                Component.literal(ability.getModId()).withStyle(ChatFormatting.AQUA)
+            ).withStyle(ChatFormatting.GRAY));
 
         if (!ability.getDescription().isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(ability.getDescription()).withStyle(ChatFormatting.WHITE)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                Component.literal(ability.getDescription()).withStyle(ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY));
         }
     }
 
     private static void showCustomMoveData(ServerPlayer player, CustomMove move) {
-        player.sendSystemMessage(Component.literal("=== ")
-                .withStyle(ChatFormatting.GOLD)
-                .append(Component.literal(move.getDisplayName())
-                        .withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD))
-                .append(Component.literal(" (Move) ===").withStyle(ChatFormatting.GOLD)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.move",
+                Component.literal(move.getDisplayName()).withStyle(ChatFormatting.WHITE, ChatFormatting.BOLD)
+        ).withStyle(ChatFormatting.GOLD));
 
         ChatFormatting typeColor = getTypeColor(move.getType());
-        player.sendSystemMessage(Component.literal("Type: ").withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(move.getType()).withStyle(typeColor, ChatFormatting.BOLD))
-                .append(Component.literal(" | Category: ").withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(move.getCategory()).withStyle(ChatFormatting.WHITE)));
+        player.sendSystemMessage(Component.empty().withStyle(ChatFormatting.GRAY)
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.move_info.type",
+                    Component.literal(move.getType()).withStyle(typeColor, ChatFormatting.BOLD)))
+                .append(Component.literal(" | "))
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.move_info.category",
+                    Component.literal(move.getCategory()).withStyle(ChatFormatting.WHITE))));
 
         String powerStr = move.getPower() > 0 ? String.valueOf(move.getPower()) : "—";
         String accStr = move.getAccuracy() > 0 ? move.getAccuracy() + "%" : "—";
-        player.sendSystemMessage(Component.literal("Power: ").withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(powerStr).withStyle(ChatFormatting.WHITE))
-                .append(Component.literal(" | Accuracy: ").withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(accStr).withStyle(ChatFormatting.WHITE))
-                .append(Component.literal(" | PP: ").withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE)));
+        player.sendSystemMessage(Component.empty().withStyle(ChatFormatting.GRAY)
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.move_info.power",
+                    Component.literal(powerStr).withStyle(ChatFormatting.WHITE)))
+                .append(Component.literal(" | "))
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.move_info.accuracy",
+                    Component.literal(accStr).withStyle(ChatFormatting.WHITE)))
+                .append(Component.literal(" | "))
+                .append(Component.translatable(
+                    "tooltip.cobblemon_showdown.move_info.pp",
+                    Component.literal(String.valueOf(move.getPp())).withStyle(ChatFormatting.WHITE))));
 
         if (move.getPriority() != 0) {
             String priorityStr = move.getPriority() > 0 ? "+" + move.getPriority() : String.valueOf(move.getPriority());
-            player.sendSystemMessage(Component.literal("Priority: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(priorityStr).withStyle(ChatFormatting.YELLOW)));
+            player.sendSystemMessage(Component.translatable(
+                "tooltip.cobblemon_showdown.move_info.priority",
+                    Component.literal(priorityStr).withStyle(ChatFormatting.YELLOW)
+            ).withStyle(ChatFormatting.GRAY));
         }
 
-        player.sendSystemMessage(Component.literal("Mod: ").withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(move.getModId()).withStyle(ChatFormatting.AQUA)));
+        player.sendSystemMessage(Component.translatable(
+            "command.cobblemon_showdown.dt.mod",
+            Component.literal(move.getModId()).withStyle(ChatFormatting.AQUA)
+        ).withStyle(ChatFormatting.GRAY));
 
         if (!move.getDescription().isEmpty()) {
-            player.sendSystemMessage(Component.literal("Description: ").withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(move.getDescription()).withStyle(ChatFormatting.WHITE)));
+            player.sendSystemMessage(Component.translatable(
+                "command.cobblemon_showdown.dt.description",
+                Component.literal(move.getDescription()).withStyle(ChatFormatting.WHITE)
+            ).withStyle(ChatFormatting.GRAY));
         }
     }
 }

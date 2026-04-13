@@ -62,8 +62,8 @@ public class PartySelectionSession {
         player1.openMenu(player1Menu);
         player2.openMenu(player2Menu);
 
-        MessageUtil.info(player1, "Select " + format.getPartySize() + " Pokemon for the battle");
-        MessageUtil.info(player2, "Select " + format.getPartySize() + " Pokemon for the battle");
+        MessageUtil.info(player1, Component.translatable("cobblemon_showdown.showdown_battle.selection", format.getPartySize()));
+        MessageUtil.info(player2, Component.translatable("cobblemon_showdown.showdown_battle.selection", format.getPartySize()));
 
         LOGGER.info("Started party selection session: {} vs {} for format {}",
             player1.getName().getString(), player2.getName().getString(), format.getName());

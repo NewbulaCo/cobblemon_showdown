@@ -15,6 +15,7 @@ import com.newbulaco.showdown.network.packets.BattleStatePacket;
 import com.newbulaco.showdown.network.packets.SeriesStatePacket;
 import com.newbulaco.showdown.util.MessageUtil;
 import com.newbulaco.showdown.util.TickScheduler;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -56,11 +57,11 @@ public class BattleManager {
     public boolean startChallengeBattle(ServerPlayer player1, ServerPlayer player2, Format format,
                                          PrizeHandler.ItemBet itemBet) {
         if (isInBattle(player1.getUUID())) {
-            MessageUtil.error(player1, "You are already in a battle!");
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.already_inA"));
             return false;
         }
         if (isInBattle(player2.getUUID())) {
-            MessageUtil.error(player1, player2.getName().getString() + " is already in a battle!");
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.already_inB", player2.getName()));
             return false;
         }
 
@@ -68,21 +69,21 @@ public class BattleManager {
 
         List<String> player1Errors = validatePlayerParty(player1, format, validator);
         if (!player1Errors.isEmpty()) {
-            MessageUtil.error(player1, "Your party doesn't meet format requirements:");
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.not_met_requirement"));
             for (String error : player1Errors) {
-                MessageUtil.error(player1, "  - " + error);
+                MessageUtil.error(player1, Component.literal("  - " + error));
             }
-            MessageUtil.error(player2, "Battle cancelled - " + player1.getName().getString() + "'s party is invalid");
+            MessageUtil.error(player2, Component.translatable("cobblemon_showdown.showdown_battle.setup.canceled", player1.getName()));
             return false;
         }
 
         List<String> player2Errors = validatePlayerParty(player2, format, validator);
         if (!player2Errors.isEmpty()) {
-            MessageUtil.error(player2, "Your party doesn't meet format requirements:");
+            MessageUtil.error(player2, Component.translatable("cobblemon_showdown.showdown_battle.setup.not_met_requirement"));
             for (String error : player2Errors) {
-                MessageUtil.error(player2, "  - " + error);
+                MessageUtil.error(player2, Component.literal("  - " + error));
             }
-            MessageUtil.error(player1, "Battle cancelled - " + player2.getName().getString() + "'s party is invalid");
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.canceled", player2.getName()));
             return false;
         }
 
@@ -93,8 +94,8 @@ public class BattleManager {
             SeriesTracker.Series series = SeriesTracker.startSeries(
                     player1.getUUID(), player2.getUUID(), format, "challenge");
             if (series != null) {
-                MessageUtil.info(player1, "Starting Best-of-" + format.getBestOf() + " series!");
-                MessageUtil.info(player2, "Starting Best-of-" + format.getBestOf() + " series!");
+                MessageUtil.info(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.message", format.getBestOf()));
+                MessageUtil.info(player2, Component.translatable("cobblemon_showdown.showdown_battle.setup.message", format.getBestOf()));
             }
         }
 
@@ -162,8 +163,8 @@ public class BattleManager {
         }
 
         if (format.hasTeamPreview()) {
-            MessageUtil.info(player1, "Team Preview phase started - select your lead Pokemon!");
-            MessageUtil.info(player2, "Team Preview phase started - select your lead Pokemon!");
+            MessageUtil.info(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.preview"));
+            MessageUtil.info(player2, Component.translatable("cobblemon_showdown.showdown_battle.setup.preview"));
 
             TeamPreview.startPreview(battle, (lead1Uuid, lead2Uuid) -> {
                 startBattleWithLeads(battle, lead1Uuid, lead2Uuid, itemBet);
@@ -190,16 +191,16 @@ public class BattleManager {
 
         List<String> player1Errors = validatePlayerParty(player1, format, validator);
         if (!player1Errors.isEmpty()) {
-            MessageUtil.error(player1, "Your party doesn't meet format requirements!");
-            MessageUtil.error(player2, "Series cancelled - opponent's party is invalid");
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.series.not_met_requirement"));
+            MessageUtil.error(player2, Component.translatable("cobblemon_showdown.showdown_battle.series.canceled.invalid_party"));
             SeriesTracker.endSeries(player1.getUUID(), player2.getUUID());
             return;
         }
 
         List<String> player2Errors = validatePlayerParty(player2, format, validator);
         if (!player2Errors.isEmpty()) {
-            MessageUtil.error(player2, "Your party doesn't meet format requirements!");
-            MessageUtil.error(player1, "Series cancelled - opponent's party is invalid");
+            MessageUtil.error(player2, Component.translatable("cobblemon_showdown.showdown_battle.series.not_met_requirement"));
+            MessageUtil.error(player1, Component.translatable("cobblemon_showdown.showdown_battle.series.canceled.invalid_party"));
             SeriesTracker.endSeries(player1.getUUID(), player2.getUUID());
             return;
         }
@@ -226,10 +227,12 @@ public class BattleManager {
                 registerCobblemonBattleId(battle.getCobblemonBattle().getBattleId());
             }
 
-            MessageUtil.success(battle.getPlayer1(), "Battle started against " +
-                    battle.getPlayer2().getName().getString() + "!");
-            MessageUtil.success(battle.getPlayer2(), "Battle started against " +
-                    battle.getPlayer1().getName().getString() + "!");
+            MessageUtil.success(battle.getPlayer1(), Component.translatable(
+                "cobblemon_showdown.showdown_battle.immediate.start",
+                battle.getPlayer2().getName()));
+            MessageUtil.success(battle.getPlayer2(), Component.translatable(
+                "cobblemon_showdown.showdown_battle.immediate.start",
+                battle.getPlayer1().getName()));
 
             BattleStatePacket startPacket = BattleStatePacket.battleStarted(
                     battle.getBattleId(),
@@ -247,8 +250,8 @@ public class BattleManager {
             }
         } else {
             unregisterBattle(battle.getBattleId());
-            MessageUtil.error(battle.getPlayer1(), "Failed to start battle!");
-            MessageUtil.error(battle.getPlayer2(), "Failed to start battle!");
+            MessageUtil.error(battle.getPlayer1(), Component.translatable("cobblemon_showdown.showdown_battle.immediate.fail"));
+            MessageUtil.error(battle.getPlayer2(), Component.translatable("cobblemon_showdown.showdown_battle.immediate.fail"));
 
             restoreHeldItems(battle.getPlayer1());
             restoreHeldItems(battle.getPlayer2());
@@ -265,8 +268,8 @@ public class BattleManager {
                 registerCobblemonBattleId(battle.getCobblemonBattle().getBattleId());
             }
 
-            MessageUtil.success(battle.getPlayer1(), "Battle started!");
-            MessageUtil.success(battle.getPlayer2(), "Battle started!");
+            MessageUtil.success(battle.getPlayer1(), Component.translatable("cobblemon_showdown.showdown_battle.start.success"));
+            MessageUtil.success(battle.getPlayer2(), Component.translatable("cobblemon_showdown.showdown_battle.start.success"));
 
             BattleStatePacket startPacket = BattleStatePacket.battleStarted(
                     battle.getBattleId(),
@@ -284,8 +287,8 @@ public class BattleManager {
             }
         } else {
             unregisterBattle(battle.getBattleId());
-            MessageUtil.error(battle.getPlayer1(), "Failed to start battle!");
-            MessageUtil.error(battle.getPlayer2(), "Failed to start battle!");
+            MessageUtil.error(battle.getPlayer1(), Component.translatable("cobblemon_showdown.showdown_battle.start.failed"));
+            MessageUtil.error(battle.getPlayer2(), Component.translatable("cobblemon_showdown.showdown_battle.start.failed"));
 
             restoreHeldItems(battle.getPlayer1());
             restoreHeldItems(battle.getPlayer2());
@@ -378,8 +381,8 @@ public class BattleManager {
                 final Format fmt = battle.getFormat();
                 final int nextGame = series.getGamesPlayed() + 1;
 
-                MessageUtil.info(p1, "Game " + nextGame + " starting in 10 seconds...");
-                MessageUtil.info(p2, "Game " + nextGame + " starting in 10 seconds...");
+                MessageUtil.info(p1, Component.translatable("cobblemon_showdown.showdown_battle.series.next_timer", nextGame));
+                MessageUtil.info(p2, Component.translatable("cobblemon_showdown.showdown_battle.series.next_timer", nextGame));
 
                 TickScheduler.scheduleSeconds(() -> {
                     ServerPlayer currentP1 = getPlayer(p1.getUUID());
@@ -388,10 +391,10 @@ public class BattleManager {
                     if (currentP1 == null || currentP2 == null) {
                         LOGGER.warn("Series game cancelled - player disconnected");
                         if (currentP1 != null) {
-                            MessageUtil.error(currentP1, "Series cancelled - opponent disconnected");
+                            MessageUtil.error(currentP1, Component.translatable("cobblemon_showdown.showdown_battle.series.canceled.disconnected"));
                         }
                         if (currentP2 != null) {
-                            MessageUtil.error(currentP2, "Series cancelled - opponent disconnected");
+                            MessageUtil.error(currentP2, Component.translatable("cobblemon_showdown.showdown_battle.series.canceled.disconnected"));
                         }
                         SeriesTracker.endSeries(p1.getUUID(), p2.getUUID());
                         return;
@@ -402,8 +405,8 @@ public class BattleManager {
                         return;
                     }
 
-                    MessageUtil.success(currentP1, "Game " + nextGame + " starting!");
-                    MessageUtil.success(currentP2, "Game " + nextGame + " starting!");
+                    MessageUtil.success(currentP1, Component.translatable("cobblemon_showdown.showdown_battle.series.next", nextGame));
+                    MessageUtil.success(currentP2, Component.translatable("cobblemon_showdown.showdown_battle.series.next", nextGame));
                     startSeriesGame(currentP1, currentP2, fmt);
 
                 }, 10, "Series game " + nextGame);
@@ -434,15 +437,19 @@ public class BattleManager {
         // winner receives 2x the bet (their own returned + loser's)
         boolean given = PrizeHandler.giveItem(winner, bet.getItemId(), bet.getAmount() * 2);
         if (given) {
-            MessageUtil.success(winner, "You won the bet! Received " + (bet.getAmount() * 2) + "x " +
-                    PrizeHandler.getItemDisplayName(bet.getItemId()));
+            MessageUtil.success(winner, Component.translatable(
+                "cobblemon_showdown.showdown_battle.bet.win",
+                (bet.getAmount() * 2),
+                PrizeHandler.getItemDisplayName(bet.getItemId())));
             LOGGER.info("Distributed bet to winner {}: {} x{}",
                     winner.getName().getString(), bet.getItemId(), bet.getAmount() * 2);
 
             if (loser != null) {
-                MessageUtil.error(loser, "You lost the bet! Your " + bet.getAmount() + "x " +
-                        PrizeHandler.getItemDisplayName(bet.getItemId()) + " went to " +
-                        winner.getName().getString());
+                MessageUtil.error(loser, Component.translatable(
+                    "cobblemon_showdown.showdown_battle.bet.lose",
+                    bet.getAmount(),
+                    PrizeHandler.getItemDisplayName(bet.getItemId()),
+                    winner.getName()));
             }
         } else {
             LOGGER.error("Failed to distribute bet to winner");
@@ -664,7 +671,7 @@ public class BattleManager {
     public boolean addSpectator(ServerPlayer spectator, UUID battleId) {
         ShowdownBattle battle = activeBattles.get(battleId);
         if (battle == null) {
-            MessageUtil.error(spectator, "Battle not found");
+            MessageUtil.error(spectator, Component.translatable("cobblemon_showdown.showdown_battle.spectate.not_found"));
             return false;
         }
 
@@ -674,13 +681,13 @@ public class BattleManager {
     public boolean spectatePlayer(ServerPlayer spectator, String targetPlayerName) {
         ServerPlayer targetPlayer = server.getPlayerList().getPlayerByName(targetPlayerName);
         if (targetPlayer == null) {
-            MessageUtil.error(spectator, "Player '" + targetPlayerName + "' not found");
+            MessageUtil.error(spectator, Component.translatable("cobblemon_showdown.showdown_battle.spectate.no_player", targetPlayerName));
             return false;
         }
 
         ShowdownBattle battle = getPlayerBattle(targetPlayer.getUUID());
         if (battle == null) {
-            MessageUtil.error(spectator, targetPlayerName + " is not in a battle");
+            MessageUtil.error(spectator, Component.translatable("cobblemon_showdown.showdown_battle.spectate.idle_player", targetPlayerName));
             return false;
         }
 
@@ -693,7 +700,7 @@ public class BattleManager {
                 return battle.getSpectatorManager().removeSpectator(spectator);
             }
         }
-        MessageUtil.error(spectator, "You are not spectating any battle");
+        MessageUtil.error(spectator, Component.translatable("cobblemon_showdown.showdown_battle.spectate.not_active"));
         return false;
     }
 
@@ -723,9 +730,9 @@ public class BattleManager {
             TeamPreview.cancelSession(opponent.getUUID());
         }
 
-        MessageUtil.info(player, "You have forfeited the battle");
+        MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.abort.forfeit"));
         if (opponent != null) {
-            MessageUtil.success(opponent, player.getName().getString() + " has forfeited!");
+            MessageUtil.success(opponent, Component.translatable("cobblemon_showdown.showdown_battle.abort.forfeit_opponent", player.getName()));
         }
 
         try {
@@ -747,7 +754,7 @@ public class BattleManager {
         SeriesTracker.Series series = SeriesTracker.findSeriesByPlayer(playerUuid);
 
         if (series == null) {
-            MessageUtil.error(player, "You are not in a battle or series");
+            MessageUtil.error(player, Component.translatable("cobblemon_showdown.showdown_battle.abort_series.not_active"));
             return false;
         }
 
@@ -763,9 +770,9 @@ public class BattleManager {
         TeamPreview.cancelSession(playerUuid);
         TeamPreview.cancelSession(opponentUuid);
 
-        MessageUtil.info(player, "You have forfeited the series");
+        MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.abort_series.forfeit"));
         if (opponent != null) {
-            MessageUtil.success(opponent, player.getName().getString() + " has forfeited the series! You win!");
+            MessageUtil.success(opponent, Component.translatable("cobblemon_showdown.showdown_battle.abort_series.forfeit_opponent", player.getName()));
         }
 
         String formatId = series.getFormat().getName();
@@ -798,7 +805,7 @@ public class BattleManager {
             UUID winnerUuid = opponent != null ? opponent.getUUID() : null;
 
             if (opponent != null) {
-                MessageUtil.info(opponent, "Your opponent disconnected - you win!");
+                MessageUtil.info(opponent, Component.translatable("cobblemon_showdown.showdown_battle.disconnected"));
             }
 
             LOGGER.info("Player {} disconnected during battle, ending battle", playerUuid);
@@ -877,7 +884,7 @@ public class BattleManager {
             }
 
             if (restored > 0) {
-                MessageUtil.info(player, "Your Pokemon's levels have been restored from your previous battle");
+                MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.rejoin.restore_level"));
                 LOGGER.info("Restored {} Pokemon levels for rejoining player {}",
                         restored, player.getName().getString());
             }
@@ -910,7 +917,7 @@ public class BattleManager {
             }
 
             if (restored > 0) {
-                MessageUtil.info(player, "Your Pokemon's held items have been restored");
+                MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.rejoin.restore_item"));
                 LOGGER.info("Restored {} held items for rejoining player {}",
                         restored, player.getName().getString());
             }
