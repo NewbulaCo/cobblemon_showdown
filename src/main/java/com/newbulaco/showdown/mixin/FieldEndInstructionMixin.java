@@ -54,7 +54,7 @@ public abstract class FieldEndInstructionMixin {
             final String finalDisplayName = customCondition.getDisplayName();
 
             battle.dispatchWaiting(1.5F, () -> {
-                Component lang = Component.literal(finalDisplayName + " has faded!");
+                Component lang = Component.translatable("cobblemon_showdown.custom.field.end", finalDisplayName);
                 battle.broadcastChatMessage(lang);
 
                 BattleContext.Type type = switch (customCondition.getType()) {

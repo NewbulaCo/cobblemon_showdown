@@ -29,11 +29,15 @@ import com.newbulaco.showdown.client.battle.PokemonBattleStatus;
 import com.newbulaco.showdown.client.battle.TypeEffectiveness;
 import com.newbulaco.showdown.network.packets.PartyStatusPacket;
 import com.newbulaco.showdown.client.tooltip.PokemonTooltipRenderer;
+import com.newbulaco.showdown.util.ComponentUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import com.newbulaco.showdown.client.ShowdownKeybinds;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -135,8 +139,8 @@ public class BattleOverlayRenderer {
         String weather = BattleStatusTracker.getWeather();
         if (!weather.isEmpty()) {
             int turns = BattleStatusTracker.getWeatherTurns();
-            String text = formatFieldEffect(weather);
-            if (turns > 0) text += " (" + turns + ")";
+            MutableComponent text = formatFieldEffect(weather);
+            if (turns > 0) text = Component.translatable("cobblemon_showdown.battle_overlay.long_effect", text.copy(), turns);;
 
             int textWidth = font.width(text);
             int x = centerX - textWidth / 2;
@@ -149,8 +153,8 @@ public class BattleOverlayRenderer {
         String terrain = BattleStatusTracker.getTerrain();
         if (!terrain.isEmpty()) {
             int turns = BattleStatusTracker.getTerrainTurns();
-            String text = formatFieldEffect(terrain);
-            if (turns > 0) text += " (" + turns + ")";
+            MutableComponent text = formatFieldEffect(terrain);
+            if (turns > 0) text = Component.translatable("cobblemon_showdown.battle_overlay.long_effect", text.copy(), turns);
 
             int textWidth = font.width(text);
             int x = centerX - textWidth / 2;
@@ -161,7 +165,10 @@ public class BattleOverlayRenderer {
         }
 
         for (var entry : BattleStatusTracker.getRooms().entrySet()) {
-            String text = formatFieldEffect(entry.getKey()) + " (" + entry.getValue() + ")";
+            MutableComponent text = Component.translatable(
+                "cobblemon_showdown.battle_overlay.long_effect",
+                formatFieldEffect(entry.getKey()),
+                entry.getValue());
 
             int textWidth = font.width(text);
             int x = centerX - textWidth / 2;
@@ -172,30 +179,30 @@ public class BattleOverlayRenderer {
         }
     }
 
-    private static String formatFieldEffect(String effect) {
-        if (effect == null || effect.isEmpty()) return "";
+    private static MutableComponent formatFieldEffect(String effect) {
+        if (effect == null || effect.isEmpty()) return Component.empty();
 
         CustomFieldCondition custom = ShowdownAPI.getFieldCondition(effect);
         if (custom != null) {
-            return custom.getDisplayName();
+            return Component.literal(custom.getDisplayName());
         }
 
         String lower = effect.toLowerCase();
         return switch (lower) {
-            case "raindance", "rain" -> "Rain";
-            case "sunnyday", "sun", "harshsunshine" -> "Sun";
-            case "sandstorm", "sand" -> "Sandstorm";
-            case "hail", "snow" -> "Snow";
-            case "primordialsea" -> "Heavy Rain";
-            case "desolateland" -> "Harsh Sunlight";
-            case "deltastream" -> "Strong Winds";
-            case "electricterrain" -> "Electric Terrain";
-            case "grassyterrain" -> "Grassy Terrain";
-            case "psychicterrain" -> "Psychic Terrain";
-            case "mistyterrain" -> "Misty Terrain";
-            case "trickroom" -> "Trick Room";
-            case "wonderroom" -> "Wonder Room";
-            case "magicroom" -> "Magic Room";
+            case "raindance", "rain" -> Component.translatable("cobblemon_showdown.battle_overlay.field.rain");
+            case "sunnyday", "sun", "harshsunshine" -> Component.translatable("cobblemon_showdown.battle_overlay.field.sun");
+            case "sandstorm", "sand" -> Component.translatable("cobblemon_showdown.battle_overlay.field.sandstorm");
+            case "hail", "snow" -> Component.translatable("cobblemon_showdown.battle_overlay.field.hail");
+            case "primordialsea" -> Component.translatable("cobblemon_showdown.battle_overlay.field.primordialsea");
+            case "desolateland" -> Component.translatable("cobblemon_showdown.battle_overlay.field.desolateland");
+            case "deltastream" -> Component.translatable("cobblemon_showdown.battle_overlay.field.deltastream");
+            case "electricterrain" -> Component.translatable("cobblemon_showdown.battle_overlay.field.electricterrain");
+            case "grassyterrain" -> Component.translatable("cobblemon_showdown.battle_overlay.field.grassyterrain");
+            case "psychicterrain" -> Component.translatable("cobblemon_showdown.battle_overlay.field.psychicterrain");
+            case "mistyterrain" -> Component.translatable("cobblemon_showdown.battle_overlay.field.mistyterrain");
+            case "trickroom" -> Component.translatable("cobblemon_showdown.battle_overlay.field.trickroom");
+            case "wonderroom" -> Component.translatable("cobblemon_showdown.battle_overlay.field.wonderroom");
+            case "magicroom" -> Component.translatable("cobblemon_showdown.battle_overlay.field.magicroom");
             default -> {
                 String[] words = effect.replace("_", " ").split(" ");
                 StringBuilder result = new StringBuilder();
@@ -206,7 +213,7 @@ public class BattleOverlayRenderer {
                               .append(" ");
                     }
                 }
-                yield result.toString().trim();
+                yield Component.literal(result.toString().trim());
             }
         };
     }
@@ -296,9 +303,12 @@ public class BattleOverlayRenderer {
         for (String statKey : STAT_ORDER) {
             Integer stages = stats.get(statKey);
             if (stages != null && stages != 0) {
-                String statName = ClientStatChangeManager.getStatDisplayName(statKey);
+                Component statName = ClientStatChangeManager.getStatDisplayName(statKey);
                 String prefix = stages > 0 ? "+" : "";
-                String text = prefix + stages + statName;
+                Component text = Component.translatable(
+                    "cobblemon_showdown.battle_overlay.status",
+                    Component.literal(prefix + stages),
+                    statName);
                 int color = stages > 0 ? 0xFF55FF55 : 0xFFFF5555;
                 items.add(new StatusItem(text, color));
             }
@@ -307,7 +317,7 @@ public class BattleOverlayRenderer {
         List<String> sortedEffects = new ArrayList<>(effects);
         sortedEffects.sort(String::compareToIgnoreCase);
         for (String effectId : sortedEffects) {
-            String displayName = ClientVolatileEffectManager.getEffectDisplayName(effectId);
+            Component displayName = ClientVolatileEffectManager.getEffectDisplayName(effectId);
             items.add(new StatusItem(displayName, 0xFFFF88FF));
         }
 
@@ -370,12 +380,12 @@ public class BattleOverlayRenderer {
         List<StatusItem> items = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : conditions.entrySet()) {
             String conditionId = entry.getKey();
-            String displayName = ClientSideConditionManager.getConditionDisplayName(conditionId);
+            MutableComponent displayName = ClientSideConditionManager.getConditionDisplayName(conditionId);
             int color = ClientSideConditionManager.getConditionColor(conditionId);
 
             int turns = entry.getValue();
             if (turns > 0) {
-                displayName += " (" + turns + ")";
+                displayName = Component.translatable("cobblemon_showdown.battle_overlay.long_effect", displayName.copy(), turns);;
             }
 
             items.add(new StatusItem(displayName, color));
@@ -419,10 +429,10 @@ public class BattleOverlayRenderer {
     }
 
     private static class StatusItem {
-        final String text;
+        final Component text;
         final int color;
 
-        StatusItem(String text, int color) {
+        StatusItem(Component text, int color) {
             this.text = text;
             this.color = color;
         }
@@ -608,8 +618,8 @@ public class BattleOverlayRenderer {
 
         if (category == TypeEffectiveness.EffectivenessCategory.NEUTRAL) return;
 
-        String text = category.text;
-        if (text.isEmpty()) return;
+        Component text = category.translatedText;
+        if (text.getString().isEmpty()) return;
 
         var font = mc.font;
 
@@ -659,38 +669,43 @@ public class BattleOverlayRenderer {
                     InBattleMove move = moves.get(i);
                     MoveTemplate moveTemplate = Moves.INSTANCE.getByNameOrDummy(move.getId());
 
-                    List<String> lines = new ArrayList<>();
+                    List<Component> lines = new ArrayList<>();
 
-                    String moveName = formatMoveName(moveTemplate.getName());
-                    lines.add(ChatFormatting.YELLOW + "" + ChatFormatting.BOLD + moveName);
+                    Component moveName = moveTemplate.getDisplayName().copy()
+                        .withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD);
+                    lines.add(moveName);
 
-                    String type = moveTemplate.getElementalType().getName();
-                    ChatFormatting typeColor = getTypeColor(type);
-                    lines.add(ChatFormatting.GRAY + "Type: " + typeColor + formatMoveName(type));
+                    ElementalType type = moveTemplate.getElementalType();
+                    Component typeName = type.getDisplayName().copy().setStyle(Style.EMPTY.withColor(type.getHue()));
+                    lines.add(Component.translatable("tooltip.cobblemon_showdown.move_info.type", typeName)
+                        .withStyle(ChatFormatting.GRAY));
 
-                    String category;
-                    ChatFormatting categoryColor;
+                    MutableComponent category = moveTemplate.getDamageCategory().getDisplayName().copy();
                     if (moveTemplate.getDamageCategory() == DamageCategories.INSTANCE.getPHYSICAL()) {
-                        category = "Physical";
-                        categoryColor = ChatFormatting.RED;
+                        category.setStyle(Style.EMPTY.withColor(ChatFormatting.RED));
                     } else if (moveTemplate.getDamageCategory() == DamageCategories.INSTANCE.getSPECIAL()) {
-                        category = "Special";
-                        categoryColor = ChatFormatting.BLUE;
+                        category.setStyle(Style.EMPTY.withColor(ChatFormatting.BLUE));
                     } else {
-                        category = "Status";
-                        categoryColor = ChatFormatting.WHITE;
+                        category.setStyle(Style.EMPTY.withColor(ChatFormatting.WHITE));
                     }
-                    lines.add(ChatFormatting.GRAY + "Category: " + categoryColor + category);
+                    lines.add(Component.translatable("tooltip.cobblemon_showdown.move_info.category", category)
+                        .withStyle(ChatFormatting.GRAY));
 
                     double power = moveTemplate.getPower();
                     double accuracy = moveTemplate.getAccuracy();
                     int maxPP = moveTemplate.getPp();
 
                     if (power > 0) {
-                        lines.add(ChatFormatting.GRAY + "Power: " + ChatFormatting.GREEN + (int) power);
+                        lines.add(Component.translatable(
+                            "tooltip.cobblemon_showdown.move_info.power",
+                                Component.literal((int) power + "").withStyle(ChatFormatting.GREEN))
+                            .withStyle(ChatFormatting.GRAY));
                     }
                     if (accuracy > 0) {
-                        lines.add(ChatFormatting.GRAY + "Accuracy: " + ChatFormatting.AQUA + (int) accuracy + "%");
+                        lines.add(Component.translatable(
+                            "tooltip.cobblemon_showdown.move_info.accuracy",
+                                Component.literal( (int) accuracy + "%").withStyle(ChatFormatting.AQUA))
+                            .withStyle(ChatFormatting.GRAY));
                     }
 
                     int currentPP = move.getPp();
@@ -698,29 +713,24 @@ public class BattleOverlayRenderer {
                                             currentPP <= maxPP / 4 ? ChatFormatting.GOLD :
                                             currentPP <= maxPP / 2 ? ChatFormatting.YELLOW :
                                             ChatFormatting.GREEN;
-                    lines.add(ChatFormatting.GRAY + "PP: " + ppColor + currentPP + "/" + maxPP);
+                    lines.add(Component.translatable(
+                        "tooltip.cobblemon_showdown.move_info.pp",
+                            Component.literal(currentPP + "/" + maxPP).withStyle(ppColor))
+                        .withStyle(ChatFormatting.GRAY));
 
                     int priority = (int) moveTemplate.getPriority();
                     if (priority != 0) {
                         ChatFormatting priorityColor = priority > 0 ? ChatFormatting.GREEN : ChatFormatting.RED;
-                        lines.add(ChatFormatting.GRAY + "Priority: " + priorityColor + (priority > 0 ? "+" : "") + priority);
+                        lines.add(Component.translatable(
+                            "tooltip.cobblemon_showdown.move_info.priority",
+                                Component.literal((priority > 0 ? "+" : "") + priority).withStyle(priorityColor))
+                            .withStyle(ChatFormatting.GRAY));
                     }
 
-                    String desc = moveTemplate.getDescription().getString();
-                    if (desc != null && !desc.isEmpty() && !desc.equals("cobblemon.move." + move.getId() + ".desc")) {
-                        lines.add("");
-                        String[] words = desc.split(" ");
-                        StringBuilder currentLine = new StringBuilder();
-                        for (String word : words) {
-                            if (currentLine.length() + word.length() > 35) {
-                                lines.add(ChatFormatting.GRAY + "" + ChatFormatting.ITALIC + currentLine.toString().trim());
-                                currentLine = new StringBuilder();
-                            }
-                            currentLine.append(word).append(" ");
-                        }
-                        if (currentLine.length() > 0) {
-                            lines.add(ChatFormatting.GRAY + "" + ChatFormatting.ITALIC + currentLine.toString().trim());
-                        }
+                    Component desc = moveTemplate.getDescription().copy().withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC);
+                    if (desc != null && !desc.getString().isEmpty()) {
+                        lines.add(Component.literal(""));
+                        lines.addAll(ComponentUtil.wrapText(desc, 140));
                     }
 
                     renderTooltip(graphics, mc, (int) mouseX + 10, (int) mouseY - 10, lines);
@@ -831,15 +841,15 @@ public class BattleOverlayRenderer {
         }
     }
 
-    private static void renderTooltip(GuiGraphics graphics, Minecraft mc, int x, int y, List<String> lines) {
+    private static void renderTooltip(GuiGraphics graphics, Minecraft mc, int x, int y, List<Component> lines) {
         if (lines.isEmpty()) return;
 
         var font = mc.font;
         int lineHeight = font.lineHeight + 2;
 
         int maxWidth = 0;
-        for (String line : lines) {
-            maxWidth = Math.max(maxWidth, font.width(ChatFormatting.stripFormatting(line)));
+        for (Component line : lines) {
+            maxWidth = Math.max(maxWidth, font.width(line));
         }
 
         int tooltipWidth = maxWidth + 8;
@@ -868,7 +878,7 @@ public class BattleOverlayRenderer {
         graphics.fill(x - 2, y + tooltipHeight, x + tooltipWidth + 2, y + tooltipHeight + 1, 0xFF5000FF);
 
         int textY = y;
-        for (String line : lines) {
+        for (Component line : lines) {
             graphics.drawString(font, line, x, textY, 0xFFFFFFFF, true);
             textY += lineHeight;
         }

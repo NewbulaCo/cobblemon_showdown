@@ -23,20 +23,20 @@ public class MessageUtil {
         player.sendSystemMessage(prefixedMsg);
     }
 
-    public static void success(ServerPlayer player, String message) {
-        send(player, Component.literal(message).withStyle(ChatFormatting.GREEN));
+    public static void success(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.GREEN));
     }
 
-    public static void error(ServerPlayer player, String message) {
-        send(player, Component.literal(message).withStyle(ChatFormatting.RED));
+    public static void error(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.RED));
     }
 
-    public static void warning(ServerPlayer player, String message) {
-        send(player, Component.literal(message).withStyle(ChatFormatting.YELLOW));
+    public static void warning(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.YELLOW));
     }
 
-    public static void info(ServerPlayer player, String message) {
-        send(player, Component.literal(message).withStyle(ChatFormatting.AQUA));
+    public static void info(ServerPlayer player, MutableComponent message) {
+        send(player, message.withStyle(ChatFormatting.AQUA));
     }
 
     public static MutableComponent prefixed(String message) {
@@ -73,10 +73,10 @@ public class MessageUtil {
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withBold(true)));
     }
 
-    public static MutableComponent header(String title) {
+    public static MutableComponent header(Component title) {
         return Component.literal("=== ")
                 .withStyle(ChatFormatting.GRAY)
-                .append(Component.literal(title).withStyle(ChatFormatting.GOLD))
+                .append(Component.empty().withStyle(ChatFormatting.GOLD).append(title))
                 .append(Component.literal(" ===").withStyle(ChatFormatting.GRAY));
     }
 

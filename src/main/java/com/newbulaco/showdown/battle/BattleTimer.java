@@ -3,6 +3,7 @@ package com.newbulaco.showdown.battle;
 import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
 import com.cobblemon.mod.common.api.battles.model.actor.BattleActor;
 import com.newbulaco.showdown.CobblemonShowdown;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.slf4j.Logger;
@@ -111,18 +112,24 @@ public class BattleTimer {
     private void checkTimerExpiry(ServerPlayer player, int totalTime, int turnTime) {
         if (totalTime <= 0) {
             LOGGER.info("Player {} lost by total time expiry", player.getName().getString());
-            player.sendSystemMessage(Component.literal("§cYou lost - total time expired!"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle.timeout_total")
+                .withStyle(ChatFormatting.RED));
             handleTimerLoss(player);
         } else if (turnTime <= 0) {
             LOGGER.info("Player {} lost by turn time expiry", player.getName().getString());
-            player.sendSystemMessage(Component.literal("§cYou lost - turn time expired!"));
+            player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle.timeout_turn")
+                .withStyle(ChatFormatting.RED));
             handleTimerLoss(player);
         } else if (totalTime <= 30) {
-            player.sendSystemMessage(Component.literal(
-                    String.format("§eWarning: %ds total time remaining!", totalTime)));
+            player.sendSystemMessage(Component.translatable(
+                "cobblemon_showdown.battle.time_warn_total",
+                totalTime
+            ).withStyle(ChatFormatting.YELLOW));
         } else if (turnTime <= 10) {
-            player.sendSystemMessage(Component.literal(
-                    String.format("§eWarning: %ds turn time remaining!", turnTime)));
+            player.sendSystemMessage(Component.translatable(
+                "cobblemon_showdown.battle.time_warn_turn",
+                turnTime
+            ).withStyle(ChatFormatting.YELLOW));
         }
     }
 
@@ -131,7 +138,8 @@ public class BattleTimer {
 
         ServerPlayer winner = battle.getOpponent(loser);
         if (winner != null) {
-            winner.sendSystemMessage(Component.literal("§aYou won - opponent ran out of time!"));
+            winner.sendSystemMessage(Component.translatable("cobblemon_showdown.battle.timeout_opponent")
+                .withStyle(ChatFormatting.GREEN));
 
             forfeitCobblemonBattle(loser);
 

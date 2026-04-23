@@ -3,6 +3,8 @@ package com.newbulaco.showdown.client.battle;
 import com.newbulaco.showdown.api.ShowdownAPI;
 import com.newbulaco.showdown.api.content.CustomVolatileEffect;
 import com.newbulaco.showdown.network.packets.VolatileEffectPacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -134,12 +136,12 @@ public class ClientVolatileEffectManager {
     /**
      * checks API registry for custom effects first, then falls back to built-in names.
      */
-    public static String getEffectDisplayName(String effectId) {
-        if (effectId == null) return "";
+    public static MutableComponent getEffectDisplayName(String effectId) {
+        if (effectId == null) return Component.empty();
 
         CustomVolatileEffect custom = ShowdownAPI.getVolatileEffect(effectId);
         if (custom != null) {
-            return custom.getDisplayName();
+            return Component.literal(custom.getDisplayName());
         }
 
         // Wheel of Dharma adapted type formats:
@@ -149,39 +151,39 @@ public class ClientVolatileEffectManager {
             String remainder = lower.substring("wheelofdharmaadapted".length());
             if (remainder.startsWith(":")) {
                 String type = remainder.substring(1);
-                return "Adapted: " + formatTypeName(type);
+                return Component.literal("Adapted: " + formatTypeName(type));
             } else if (!remainder.isEmpty()) {
-                return "Adapted: " + formatTypeName(remainder);
+                return Component.literal("Adapted: " + formatTypeName(remainder));
             }
-            return "Adapted";
+            return Component.literal("Adapted");
         }
 
         return switch (lower) {
-            case "leechseed" -> "Leech Seed";
-            case "confusion" -> "Confused";
-            case "substitute" -> "Substitute";
-            case "focusenergy" -> "Focus Energy";
-            case "taunt" -> "Taunt";
-            case "encore" -> "Encore";
-            case "disable" -> "Disable";
-            case "torment" -> "Torment";
-            case "yawn" -> "Drowsy";
-            case "curse" -> "Curse";
-            case "nightmare" -> "Nightmare";
-            case "attract" -> "Infatuation";
-            case "embargo" -> "Embargo";
-            case "healblock" -> "Heal Block";
-            case "ingrain" -> "Ingrain";
-            case "aquaring" -> "Aqua Ring";
-            case "magnetrise" -> "Magnet Rise";
-            case "perishsong" -> "Perish Song";
-            case "destinybond" -> "Destiny Bond";
-            case "protect" -> "Protected";
-            case "endure" -> "Endure";
-            case "flinch" -> "Flinch";
-            case "trapped" -> "Trapped";
-            case "partiallytrapped" -> "Bound";
-            default -> formatEffectName(effectId);
+            case "leechseed" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.leechseed");
+            case "confusion" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.confusion");
+            case "substitute" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.substitute");
+            case "focusenergy" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.focusenergy");
+            case "taunt" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.taunt");
+            case "encore" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.encore");
+            case "disable" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.disable");
+            case "torment" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.torment");
+            case "yawn" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.yawn");
+            case "curse" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.curse");
+            case "nightmare" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.nightmare");
+            case "attract" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.attract");
+            case "embargo" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.embargo");
+            case "healblock" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.healblock");
+            case "ingrain" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.ingrain");
+            case "aquaring" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.aquaring");
+            case "magnetrise" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.magnetrise");
+            case "perishsong" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.perishsong");
+            case "destinybond" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.destinybond");
+            case "protect" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.protect");
+            case "endure" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.endure");
+            case "flinch" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.flinch");
+            case "trapped" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.trapped");
+            case "partiallytrapped" -> Component.translatable("cobblemon_showdown.battle_overlay.effect.partiallytrapped");
+            default -> Component.literal(formatEffectName(effectId));
         };
     }
 

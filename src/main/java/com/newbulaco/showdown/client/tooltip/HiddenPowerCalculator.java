@@ -2,6 +2,8 @@ package com.newbulaco.showdown.client.tooltip;
 
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 /**
  * formula: type = floor((a + 2b + 4c + 8d + 16e + 32f) * 15 / 63)
@@ -9,13 +11,26 @@ import com.cobblemon.mod.common.pokemon.Pokemon;
  */
 public class HiddenPowerCalculator {
 
-    private static final String[] TYPES = {
-        "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug",
-        "Ghost", "Steel", "Fire", "Water", "Grass", "Electric",
-        "Psychic", "Ice", "Dragon", "Dark"
+    private static final Component[] TYPES = {
+        Component.translatable("cobblemon.type.fighting"),
+        Component.translatable("cobblemon.type.flying"),
+        Component.translatable("cobblemon.type.poison"),
+        Component.translatable("cobblemon.type.ground"),
+        Component.translatable("cobblemon.type.rock"),
+        Component.translatable("cobblemon.type.bug"),
+        Component.translatable("cobblemon.type.ghost"),
+        Component.translatable("cobblemon.type.steel"),
+        Component.translatable("cobblemon.type.fire"),
+        Component.translatable("cobblemon.type.water"),
+        Component.translatable("cobblemon.type.grass"),
+        Component.translatable("cobblemon.type.electric"),
+        Component.translatable("cobblemon.type.psychic"),
+        Component.translatable("cobblemon.type.ice"),
+        Component.translatable("cobblemon.type.dragon"),
+        Component.translatable("cobblemon.type.dark")
     };
 
-    public static String calculateHiddenPowerType(Pokemon pokemon) {
+    public static MutableComponent calculateHiddenPowerType(Pokemon pokemon) {
         int hpIV = pokemon.getIvs().getOrDefault(Stats.HP);
         int atkIV = pokemon.getIvs().getOrDefault(Stats.ATTACK);
         int defIV = pokemon.getIvs().getOrDefault(Stats.DEFENCE);
@@ -31,7 +46,7 @@ public class HiddenPowerCalculator {
         int f = spDefIV % 2;
 
         int typeIndex = (int) Math.floor((a + 2*b + 4*c + 8*d + 16*e + 32*f) * 15.0 / 63.0);
-        return TYPES[typeIndex];
+        return TYPES[typeIndex].copy();
     }
 
     /**

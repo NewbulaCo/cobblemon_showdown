@@ -3,6 +3,8 @@ package com.newbulaco.showdown.client.battle;
 import com.newbulaco.showdown.api.ShowdownAPI;
 import com.newbulaco.showdown.api.content.CustomSideCondition;
 import com.newbulaco.showdown.network.packets.SideConditionPacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
@@ -105,36 +107,36 @@ public class ClientSideConditionManager {
         currentBattleId = null;
     }
 
-    public static String getConditionDisplayName(String conditionId) {
-        if (conditionId == null) return "";
+    public static MutableComponent getConditionDisplayName(String conditionId) {
+        if (conditionId == null) return Component.empty();
 
         CustomSideCondition custom = ShowdownAPI.getSideCondition(conditionId);
         if (custom != null) {
-            return custom.getDisplayName();
+            return Component.literal(custom.getDisplayName());
         }
 
         return switch (conditionId.toLowerCase()) {
-            case "safeguard" -> "Safeguard";
-            case "lightscreen" -> "Light Screen";
-            case "reflect" -> "Reflect";
-            case "auroraveil" -> "Aurora Veil";
-            case "tailwind" -> "Tailwind";
-            case "mist" -> "Mist";
-            case "luckychant" -> "Lucky Chant";
-            case "stealthrock" -> "Stealth Rock";
-            case "spikes" -> "Spikes";
-            case "toxicspikes" -> "Toxic Spikes";
-            case "stickyweb" -> "Sticky Web";
-            case "gmaxsteelsurge" -> "G-Max Steelsurge";
-            case "gmaxcannonade" -> "G-Max Cannonade";
-            case "gmaxvinelash" -> "G-Max Vine Lash";
-            case "gmaxwildfire" -> "G-Max Wildfire";
-            case "gmaxvolcalith" -> "G-Max Volcalith";
-            case "wideguard" -> "Wide Guard";
-            case "quickguard" -> "Quick Guard";
-            case "matblock" -> "Mat Block";
-            case "craftyshield" -> "Crafty Shield";
-            default -> formatConditionName(conditionId);
+            case "safeguard" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.safeguard");
+            case "lightscreen" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.lightscreen");
+            case "reflect" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.reflect");
+            case "auroraveil" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.auroraveil");
+            case "tailwind" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.tailwind");
+            case "mist" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.mist");
+            case "luckychant" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.luckychant");
+            case "stealthrock" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.stealthrock");
+            case "spikes" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.spikes");
+            case "toxicspikes" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.toxicspikes");
+            case "stickyweb" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.stickyweb");
+            case "gmaxsteelsurge" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.gmaxsteelsurge");
+            case "gmaxcannonade" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.gmaxcannonade");
+            case "gmaxvinelash" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.gmaxvinelash");
+            case "gmaxwildfire" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.gmaxwildfire");
+            case "gmaxvolcalith" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.gmaxvolcalith");
+            case "wideguard" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.wideguard");
+            case "quickguard" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.quickguard");
+            case "matblock" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.matblock");
+            case "craftyshield" -> Component.translatable("cobblemon_showdown.battle_overlay.condition.craftyshield");
+            default -> Component.literal(formatConditionName(conditionId));
         };
     }
 

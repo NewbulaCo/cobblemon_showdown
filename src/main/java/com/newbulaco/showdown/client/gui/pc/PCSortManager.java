@@ -7,6 +7,8 @@ import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.net.messages.server.storage.pc.MovePCPokemonPacket;
 import com.cobblemon.mod.common.net.messages.server.storage.pc.SwapPCPokemonPacket;
 import com.cobblemon.mod.common.CobblemonNetwork;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,26 +22,36 @@ public class PCSortManager {
     private static final Logger LOGGER = LoggerFactory.getLogger("CobblemonShowdown");
 
     public enum SortCriteria {
-        IV_TOTAL("IV Total"),
-        EV_TOTAL("EV Total"),
-        BST("Base Stat Total"),
-        DEX_NUMBER("Dex Number"),
-        NAME("Name"),
-        LEVEL("Level"),
-        GENDER("Gender"),
-        SHINY("Shiny"),
-        CATCH_DATE("Catch Date"),
-        FRIENDSHIP("Friendship"),
-        NATURE("Nature");
+        IV_TOTAL("IV Total", "cobblemon_showdown.pc_sort.sort_by.iv_total"),
+        EV_TOTAL("EV Total", "cobblemon_showdown.pc_sort.sort_by.ev_total"),
+        BST("Base Stat Total", "cobblemon_showdown.pc_sort.sort_by.base_stat"),
+        DEX_NUMBER("Dex Number", "cobblemon_showdown.pc_sort.sort_by.dex_number"),
+        NAME("Name", "cobblemon_showdown.pc_sort.sort_by.name"),
+        LEVEL("Level", "cobblemon_showdown.pc_sort.sort_by.level"),
+        GENDER("Gender", "cobblemon_showdown.pc_sort.sort_by.gender"),
+        SHINY("Shiny", "cobblemon_showdown.pc_sort.sort_by.shiny"),
+        CATCH_DATE("Catch Date", "cobblemon_showdown.pc_sort.sort_by.catch_date"),
+        FRIENDSHIP("Friendship", "cobblemon_showdown.pc_sort.sort_by.friendship"),
+        NATURE("Nature", "cobblemon_showdown.pc_sort.sort_by.nature");
 
         private final String displayName;
+        private final String translationKey;
 
-        SortCriteria(String displayName) {
+        SortCriteria(String displayName, String translationKey) {
             this.displayName = displayName;
+            this.translationKey = translationKey;
         }
 
         public String getDisplayName() {
             return displayName;
+        }
+
+        public MutableComponent getTranslatedName() {
+            return Component.translatable(translationKey);
+        }
+
+        public MutableComponent getTranslatedNameShort() {
+            return Component.translatable(translationKey + ".short");
         }
     }
 
@@ -283,7 +295,7 @@ public class PCSortManager {
             case DEX_NUMBER:
                 return Comparator.comparingInt(ps -> ps.pokemon.getSpecies().getNationalPokedexNumber());
             case NAME:
-                return Comparator.comparing(ps -> ps.pokemon.getSpecies().getName());
+                return Comparator.comparing(ps -> ps.pokemon.getSpecies().getTranslatedName().getString());
             case LEVEL:
                 return Comparator.comparingInt(ps -> ps.pokemon.getLevel());
             case GENDER:
@@ -295,7 +307,7 @@ public class PCSortManager {
             case FRIENDSHIP:
                 return Comparator.comparingInt(ps -> ps.pokemon.getFriendship());
             case NATURE:
-                return Comparator.comparing(ps -> ps.pokemon.getNature().getName().toString());
+                return Comparator.comparing(ps -> ps.pokemon.getNature().getDisplayName());
             default:
                 return Comparator.comparingInt(ps -> ps.pokemon.getSpecies().getNationalPokedexNumber());
         }

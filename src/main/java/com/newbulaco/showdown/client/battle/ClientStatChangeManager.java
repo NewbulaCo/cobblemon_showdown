@@ -1,6 +1,8 @@
 package com.newbulaco.showdown.client.battle;
 
 import com.newbulaco.showdown.network.packets.StatChangePacket;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -97,17 +99,17 @@ public class ClientStatChangeManager {
         currentBattleId = null;
     }
 
-    public static String getStatDisplayName(String statAbbr) {
-        if (statAbbr == null) return "";
+    public static MutableComponent getStatDisplayName(String statAbbr) {
+        if (statAbbr == null) return Component.empty();
         return switch (statAbbr.toLowerCase()) {
-            case "atk" -> "Atk";
-            case "def" -> "Def";
-            case "spa" -> "SpA";
-            case "spd" -> "SpD";
-            case "spe" -> "Spe";
-            case "accuracy" -> "Acc";
-            case "evasion" -> "Eva";
-            default -> statAbbr;
+            case "atk" -> Component.translatable("cobblemon_showdown.stat.attack.short");
+            case "def" -> Component.translatable("cobblemon_showdown.stat.defence.short");
+            case "spa" -> Component.translatable("cobblemon_showdown.stat.special_attack.short");
+            case "spd" -> Component.translatable("cobblemon_showdown.stat.special_defence.short");
+            case "spe" -> Component.translatable("cobblemon_showdown.stat.speed.short");
+            case "accuracy" -> Component.translatable("cobblemon_showdown.stat.accuracy.short");
+            case "evasion" -> Component.translatable("cobblemon_showdown.stat.evasion.short");
+            default -> Component.literal(statAbbr);
         };
     }
 }

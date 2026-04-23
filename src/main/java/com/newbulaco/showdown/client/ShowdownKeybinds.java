@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import com.newbulaco.showdown.CobblemonShowdown;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -43,11 +44,11 @@ public class ShowdownKeybinds {
         return InputConstants.isKeyDown(window, SHOW_PARTY_LEARNERS.getKey().getValue());
     }
 
-    public static String getShowInfoKeyName() {
-        return SHOW_INFO.getTranslatedKeyMessage().getString();
+    public static Component getShowInfoKeyName() {
+        return SHOW_INFO.getTranslatedKeyMessage();
     }
 
-    public static String getShowPartyLearnersKeyName() {
-        return SHOW_PARTY_LEARNERS.getTranslatedKeyMessage().getString();
+    public static Component getShowPartyLearnersKeyName() {
+        return SHOW_PARTY_LEARNERS.getTranslatedKeyMessage();
     }
 }

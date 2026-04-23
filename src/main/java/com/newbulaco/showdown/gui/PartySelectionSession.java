@@ -62,8 +62,8 @@ public class PartySelectionSession {
         player1.openMenu(player1Menu);
         player2.openMenu(player2Menu);
 
-        MessageUtil.info(player1, "Select " + format.getPartySize() + " Pokemon for the battle");
-        MessageUtil.info(player2, "Select " + format.getPartySize() + " Pokemon for the battle");
+        MessageUtil.info(player1, Component.translatable("cobblemon_showdown.showdown_battle.selection", format.getPartySize()));
+        MessageUtil.info(player2, Component.translatable("cobblemon_showdown.showdown_battle.selection", format.getPartySize()));
 
         LOGGER.info("Started party selection session: {} vs {} for format {}",
             player1.getName().getString(), player2.getName().getString(), format.getName());
@@ -117,10 +117,12 @@ public class PartySelectionSession {
 
         ServerPlayer otherPlayer = player.getUUID().equals(player1.getUUID()) ? player2 : player1;
 
-        player.sendSystemMessage(Component.literal("You cancelled the Pokemon selection")
-            .withStyle(ChatFormatting.RED));
-        otherPlayer.sendSystemMessage(Component.literal(player.getName().getString() + " cancelled the Pokemon selection")
-            .withStyle(ChatFormatting.RED));
+        player.sendSystemMessage(
+            Component.translatable("cobblemon_showdown.battle_gui.session.cancel")
+                .withStyle(ChatFormatting.RED));
+        otherPlayer.sendSystemMessage(
+            Component.translatable("cobblemon_showdown.battle_gui.session.cancelled", player.getName())
+                .withStyle(ChatFormatting.RED));
 
         player1Menu.forceCloseMenu();
         player2Menu.forceCloseMenu();
@@ -134,9 +136,9 @@ public class PartySelectionSession {
         if (completed || cancelled) return;
         timedOut = true;
 
-        player1.sendSystemMessage(Component.literal("Pokemon selection timed out!")
+        player1.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.session.timeout")
             .withStyle(ChatFormatting.RED));
-        player2.sendSystemMessage(Component.literal("Pokemon selection timed out!")
+        player2.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_gui.session.timeout")
             .withStyle(ChatFormatting.RED));
 
         player1Menu.forceCloseMenu();

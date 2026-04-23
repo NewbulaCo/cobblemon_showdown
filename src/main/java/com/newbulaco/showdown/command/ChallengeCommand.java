@@ -67,17 +67,17 @@ public class ChallengeCommand {
     private static int showFormats(CommandContext<CommandSourceStack> context) {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.show_format.no_manager"));
             return 0;
         }
 
         Collection<String> formatIds = formatManager.getFormatIds();
         if (formatIds.isEmpty()) {
-            sendError(context.getSource(), "No formats available");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.show_format.no_formats"));
             return 0;
         }
 
-        sendInfo(context.getSource(), "Available formats:");
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.show_format.format_list"));
         for (String formatId : formatIds) {
             Format format = formatManager.getFormat(formatId);
             if (format != null) {
@@ -86,8 +86,9 @@ public class ChallengeCommand {
                                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD)
                                 .withStyle(style -> style
                                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                                Component.literal(format.getDescription() != null ?
-                                                        format.getDescription() : "No description")))
+                                                format.getDescription() != null
+                                                    ? Component.literal(format.getDescription())
+                                                    : Component.translatable("command.cobblemon_showdown.show_format.no_description")))
                                         .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
                                                 "/showdown challenge @p " + formatId))))
                         .append(Component.literal(" - " + format.getName())
@@ -95,7 +96,7 @@ public class ChallengeCommand {
                 context.getSource().sendSuccess(() -> formatLine, false);
             }
         }
-        sendInfo(context.getSource(), "Usage: /showdown challenge <player> <format>");
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.show_format.use"));
         return 1;
     }
 
@@ -108,8 +109,8 @@ public class ChallengeCommand {
         Challenge.ItemBet itemBet = parseItemBet(betString);
 
         if (itemBet == null) {
-            sendError(context.getSource(), "Invalid item bet format. Use: item_bet:<item>,<amount>");
-            sendInfo(context.getSource(), "Example: item_bet:minecraft:diamond,5");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.item_bet.invalid"));
+            sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.item_bet.example"));
             return 0;
         }
 
@@ -123,7 +124,7 @@ public class ChallengeCommand {
             String formatId = StringArgumentType.getString(context, "format");
 
             if (challenger.getUUID().equals(challenged.getUUID())) {
-                sendError(context.getSource(), "You cannot challenge yourself!");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.player.cannot_self"));
                 return 0;
             }
 
@@ -131,19 +132,27 @@ public class ChallengeCommand {
                 double distance = challenger.distanceTo(challenged);
                 double maxDistance = ShowdownConfig.getChallengeRadius();
                 if (distance > maxDistance) {
-                    sendError(context.getSource(), "You must be within " + (int) maxDistance +
-                            " blocks of " + challenged.getName().getString() + " to challenge them!");
-                    sendInfo(context.getSource(), "Current distance: " + String.format("%.1f", distance) + " blocks");
+                    sendError(context.getSource(), Component.translatable(
+                        "command.cobblemon_showdown.challenge.player.out_of_range",
+                        (int) maxDistance,
+                        challenged.getName()));
+                    sendInfo(context.getSource(), Component.translatable(
+                        "command.cobblemon_showdown.challenge.player.out_of_range.msg",
+                        String.format("%.1f", distance)));
                     return 0;
                 }
             }
 
             FormatManager formatManager = CobblemonShowdown.getFormatManager();
             if (formatManager == null || !formatManager.hasFormat(formatId)) {
-                sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+                sendError(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.player.invalid_format",
+                    formatId));
                 Collection<String> formatIds = formatManager != null ? formatManager.getFormatIds() : Collections.emptyList();
                 if (!formatIds.isEmpty()) {
-                    sendInfo(context.getSource(), "Available formats: " + String.join(", ", formatIds));
+                    sendInfo(context.getSource(), Component.translatable(
+                        "command.cobblemon_showdown.challenge.player.format_list",
+                        String.join(", ", formatIds)));
                 }
                 return 0;
             }
@@ -152,7 +161,9 @@ public class ChallengeCommand {
             ChallengeManager challengeManager = CobblemonShowdown.getChallengeManager();
 
             if (challengeManager.hasChallenge(challenged.getUUID())) {
-                sendError(context.getSource(), challenged.getName().getString() + " already has a pending challenge");
+                sendError(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.player.pending_player",
+                    challenged.getName()));
                 return 0;
             }
 
@@ -164,60 +175,58 @@ public class ChallengeCommand {
             );
 
             if (!created) {
-                sendError(context.getSource(), "Failed to create challenge");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.player.failed"));
                 return 0;
             }
 
-            sendSuccess(context.getSource(), "Challenge sent to " + challenged.getName().getString());
+            sendSuccess(context.getSource(), Component.translatable(
+                "command.cobblemon_showdown.challenge.player.sent",
+                challenged.getName()));
             if (itemBet != null) {
-                sendInfo(context.getSource(), "Item bet: " + itemBet);
+                sendInfo(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.player.bet",
+                    itemBet));
             }
 
-            MutableComponent message = Component.literal("⚔ ")
-                    .withStyle(ChatFormatting.GOLD)
-                    .append(Component.literal(challenger.getName().getString())
-                            .withStyle(ChatFormatting.YELLOW))
-                    .append(Component.literal(" challenged you to "))
-                    .append(Component.literal(format.getName())
-                            .withStyle(ChatFormatting.AQUA))
-                    .append(Component.literal("!"));
-
+            MutableComponent bettedItem = Component.empty();
             if (itemBet != null) {
-                message.append(Component.literal("\n  Item Bet: ")
-                        .withStyle(ChatFormatting.GRAY))
-                        .append(Component.literal(String.valueOf(itemBet))
-                                .withStyle(ChatFormatting.GOLD));
+                bettedItem.append(Component.empty().withStyle(ChatFormatting.GRAY)
+                        .append(Component.literal("\n  "))
+                        .append(Component.translatable("command.cobblemon_showdown.challenge.player.bet",
+                            Component.literal(String.valueOf(itemBet)).withStyle(ChatFormatting.GOLD))));
             }
 
-            message.append(Component.literal("\n  "));
-
-            MutableComponent acceptButton = Component.literal("[Accept]")
+            MutableComponent acceptButton = Component.translatable("command.cobblemon_showdown.challenge.player.receive.accept")
                     .withStyle(ChatFormatting.GREEN, ChatFormatting.BOLD)
                     .withStyle(style -> style
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    Component.literal("Click to accept")))
+                                    Component.translatable("command.cobblemon_showdown.challenge.player.receive.accept.msg")))
                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                     "/showdown accept " + challenger.getName().getString())));
 
-            MutableComponent denyButton = Component.literal("[Deny]")
+            MutableComponent denyButton = Component.translatable("command.cobblemon_showdown.challenge.player.receive.deny")
                     .withStyle(ChatFormatting.RED, ChatFormatting.BOLD)
                     .withStyle(style -> style
                             .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                    Component.literal("Click to deny")))
+                                    Component.translatable("command.cobblemon_showdown.challenge.player.receive.deny.msg")))
                             .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                                     "/showdown deny " + challenger.getName().getString())));
 
-            message.append(acceptButton).append(Component.literal("  ")).append(denyButton);
-
-            message.append(Component.literal("\n  Expires in 60 seconds")
-                    .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            Component message = Component.translatable(
+                "command.cobblemon_showdown.challenge.player.receive",
+                challenger.getName().copy().withStyle(ChatFormatting.YELLOW),
+                Component.literal(format.getName()).withStyle(ChatFormatting.AQUA),
+                bettedItem,
+                acceptButton,
+                denyButton
+                ).withStyle(ChatFormatting.GOLD);
 
             challenged.sendSystemMessage(message);
 
             return 1;
 
         } catch (Exception e) {
-            sendError(context.getSource(), "Error creating challenge: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.player.error", e.getMessage()));
             return 0;
         }
     }
@@ -231,13 +240,15 @@ public class ChallengeCommand {
             Challenge challenge = challengeManager.getChallengeFrom(challenger.getUUID(), accepter.getUUID());
 
             if (challenge == null) {
-                sendError(context.getSource(), "No pending challenge from " + challenger.getName().getString());
+                sendError(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.common.no_pending",
+                    challenger.getName()));
                 return 0;
             }
 
             if (challenge.isExpired()) {
                 challengeManager.removeChallenge(accepter.getUUID());
-                sendError(context.getSource(), "Challenge has expired");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.accept.expired"));
                 return 0;
             }
 
@@ -245,7 +256,9 @@ public class ChallengeCommand {
             Format format = formatManager.getFormat(challenge.getFormatId());
 
             if (format == null) {
-                sendError(context.getSource(), "Format '" + challenge.getFormatId() + "' no longer exists!");
+                sendError(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.accept.invalid_format",
+                    challenge.getFormatId()));
                 challengeManager.removeChallenge(accepter.getUUID());
                 return 0;
             }
@@ -260,7 +273,7 @@ public class ChallengeCommand {
 
             BattleManager battleManager = CobblemonShowdown.getBattleManager();
             if (battleManager == null) {
-                sendError(context.getSource(), "Battle system not available!");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.no_manager"));
                 return 0;
             }
 
@@ -269,20 +282,20 @@ public class ChallengeCommand {
             boolean started = battleManager.startChallengeBattle(challenger, accepter, format, prizeBet);
 
             if (started) {
-                sendSuccess(context.getSource(), "Challenge accepted! Battle starting...");
-                MutableComponent challengerMsg = Component.literal(accepter.getName().getString())
-                        .withStyle(ChatFormatting.YELLOW)
-                        .append(Component.literal(" accepted your challenge!")
-                                .withStyle(ChatFormatting.GREEN));
+                sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.accept.starting"));
+                MutableComponent challengerMsg = Component.translatable(
+                    "command.cobblemon_showdown.challenge.accept.starting.msg",
+                        accepter.getName().copy().withStyle(ChatFormatting.YELLOW)
+                ).withStyle(ChatFormatting.GREEN);
                 challenger.sendSystemMessage(challengerMsg);
             } else {
-                sendError(context.getSource(), "Failed to start battle - check your party!");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.accept.failed"));
             }
 
             return started ? 1 : 0;
 
         } catch (Exception e) {
-            sendError(context.getSource(), "Error accepting challenge: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.accept.error", e.getMessage()));
             return 0;
         }
     }
@@ -296,23 +309,25 @@ public class ChallengeCommand {
             Challenge challenge = challengeManager.getChallengeFrom(challenger.getUUID(), denier.getUUID());
 
             if (challenge == null) {
-                sendError(context.getSource(), "No pending challenge from " + challenger.getName().getString());
+                sendError(context.getSource(), Component.translatable(
+                    "command.cobblemon_showdown.challenge.common.no_pending",
+                    challenger.getName()));
                 return 0;
             }
 
             challengeManager.removeChallenge(denier.getUUID());
-            sendSuccess(context.getSource(), "Challenge denied");
+            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.deny.denied"));
 
-            MutableComponent challengerMsg = Component.literal(denier.getName().getString())
-                    .withStyle(ChatFormatting.YELLOW)
-                    .append(Component.literal(" denied your challenge")
-                            .withStyle(ChatFormatting.RED));
+            MutableComponent challengerMsg = Component.translatable(
+                "command.cobblemon_showdown.challenge.deny.denied.msg",
+                denier.getName().copy().withStyle(ChatFormatting.YELLOW)
+            ).withStyle(ChatFormatting.RED);
             challenger.sendSystemMessage(challengerMsg);
 
             return 1;
 
         } catch (Exception e) {
-            sendError(context.getSource(), "Error denying challenge: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.deny.error", e.getMessage()));
             return 0;
         }
     }
@@ -322,7 +337,7 @@ public class ChallengeCommand {
             ServerPlayer player = context.getSource().getPlayerOrException();
             return showHistoryForPlayer(context.getSource(), player);
         } catch (Exception e) {
-            sendError(context.getSource(), "Error showing history: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.history.error", e.getMessage()));
             return 0;
         }
     }
@@ -332,7 +347,7 @@ public class ChallengeCommand {
             ServerPlayer target = EntityArgument.getPlayer(context, "player");
             return showHistoryForPlayer(context.getSource(), target);
         } catch (Exception e) {
-            sendError(context.getSource(), "Error showing history: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.challenge.history.error", e.getMessage()));
             return 0;
         }
     }
@@ -340,61 +355,51 @@ public class ChallengeCommand {
     private static int showHistoryForPlayer(CommandSourceStack source, ServerPlayer player) {
         HistoryStorage storage = CobblemonShowdown.getHistoryStorage();
         if (storage == null) {
-            sendError(source, "History storage not initialized");
+            sendError(source, Component.translatable("command.cobblemon_showdown.challenge.history.no_storage"));
             return 0;
         }
 
         PlayerHistory history = storage.getHistory(player.getUUID());
 
-        MutableComponent message = Component.literal("Battle History: ")
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD)
-                .append(Component.literal(player.getName().getString())
-                        .withStyle(ChatFormatting.YELLOW));
-
-        message.append(Component.literal("\n\nStats:")
-                .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
-
-        message.append(Component.literal("\n  Wins: ")
-                .withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(String.valueOf(history.getStats().getWins()))
-                        .withStyle(ChatFormatting.GREEN));
-
-        message.append(Component.literal("\n  Losses: ")
-                .withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(String.valueOf(history.getStats().getLosses()))
-                        .withStyle(ChatFormatting.RED));
-
-        message.append(Component.literal("\n  Total: ")
-                .withStyle(ChatFormatting.GRAY))
-                .append(Component.literal(String.valueOf(history.getTotalMatches()))
-                        .withStyle(ChatFormatting.WHITE));
-
+        MutableComponent winRate = Component.empty().withStyle(ChatFormatting.GRAY);
         if (history.getTotalMatches() > 0) {
-            message.append(Component.literal("\n  Win Rate: ")
-                    .withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal(String.format("%.1f%%", history.getWinRate()))
-                            .withStyle(ChatFormatting.YELLOW));
+            winRate.append(Component.translatable(
+                "command.cobblemon_showdown.challenge.history.win_rate",
+                Component.literal(String.format("%.1f%%", history.getWinRate())).withStyle(ChatFormatting.YELLOW)
+            ));
         }
 
+        MutableComponent recentMatches = Component.empty().withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD);
         List<PlayerHistory.MatchRecord> matches = history.getMatches();
         if (!matches.isEmpty()) {
-            message.append(Component.literal("\n\nRecent Matches:")
-                    .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
+            recentMatches.append(Component.translatable("command.cobblemon_showdown.challenge.history.recent"));
 
             int count = Math.min(5, matches.size());
             for (int i = matches.size() - 1; i >= matches.size() - count; i--) {
                 PlayerHistory.MatchRecord match = matches.get(i);
 
                 ChatFormatting resultColor = match.isWin() ? ChatFormatting.GREEN : ChatFormatting.RED;
-                String resultText = match.isWin() ? "W" : "L";
 
-                message.append(Component.literal("\n  [" + resultText + "] ")
-                        .withStyle(resultColor, ChatFormatting.BOLD))
-                        .append(Component.literal(match.getFormatId())
-                                .withStyle(ChatFormatting.GRAY));
+                recentMatches.append(
+                    Component.literal("\n  ")
+                        .append(Component.translatable(match.isWin()
+                                ? "command.cobblemon_showdown.challenge.history.win"
+                                : "command.cobblemon_showdown.challenge.history.lost",
+                            Component.literal(match.getFormatId()).withStyle(ChatFormatting.GRAY)
+                        ).withStyle(resultColor, ChatFormatting.BOLD)));
 
             }
         }
+
+        MutableComponent message = Component.translatable(
+            "command.cobblemon_showdown.challenge.history",
+            player.getName().copy().withStyle(ChatFormatting.YELLOW),
+            Component.literal(String.valueOf(history.getStats().getWins())).withStyle(ChatFormatting.GREEN),
+            Component.literal(String.valueOf(history.getStats().getLosses())).withStyle(ChatFormatting.RED),
+            Component.literal(String.valueOf(history.getTotalMatches())).withStyle(ChatFormatting.WHITE),
+            winRate,
+            recentMatches
+        ).withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
 
         source.sendSuccess(() -> message, false);
         return 1;
@@ -416,15 +421,15 @@ public class ChallengeCommand {
         }
     }
 
-    private static void sendSuccess(CommandSourceStack source, String message) {
-        source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.GREEN), false);
+    private static void sendSuccess(CommandSourceStack source, MutableComponent message) {
+        source.sendSuccess(() -> message.withStyle(ChatFormatting.GREEN), false);
     }
 
-    private static void sendError(CommandSourceStack source, String message) {
-        source.sendFailure(Component.literal(message).withStyle(ChatFormatting.RED));
+    private static void sendError(CommandSourceStack source, MutableComponent message) {
+        source.sendFailure(message.withStyle(ChatFormatting.RED));
     }
 
-    private static void sendInfo(CommandSourceStack source, String message) {
-        source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.GRAY), false);
+    private static void sendInfo(CommandSourceStack source, MutableComponent message) {
+        source.sendSuccess(() -> message.withStyle(ChatFormatting.GRAY), false);
     }
 }

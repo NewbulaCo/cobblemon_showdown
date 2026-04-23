@@ -19,10 +19,11 @@ public class PCSortPanel {
 
     private static final int TOGGLE_WIDTH = 32;
     private static final int TOGGLE_HEIGHT = 14;
-    private static final int PANEL_WIDTH = 90;
-    private static final int PANEL_HEIGHT = 155;
     private static final int BUTTON_HEIGHT = 12;
     private static final int BUTTON_SPACING = 1;
+    private static final int PANEL_WIDTH = 90;
+    private static final int PANEL_HEIGHT =
+        (PCSortManager.SortCriteria.values().length + 2) * (BUTTON_HEIGHT + BUTTON_SPACING) - BUTTON_SPACING * 3;
 
     private final int x;
     private final int y;
@@ -52,10 +53,11 @@ public class PCSortPanel {
         var font = Minecraft.getInstance().font;
 
         toggleButton = Button.builder(
-            Component.literal("Sort").withStyle(ChatFormatting.WHITE),
+            Component.translatable("cobblemon_showdown.pc_sort.sort").withStyle(ChatFormatting.WHITE),
             btn -> toggleExpanded()
         ).bounds(x, y, TOGGLE_WIDTH, TOGGLE_HEIGHT).build();
-        toggleButton.setTooltip(Tooltip.create(Component.literal("Click to show sort options")));
+        toggleButton.setTooltip(Tooltip.create(
+            Component.translatable("cobblemon_showdown.pc_sort.sort.description")));
 
         ascDescButton = Button.builder(
             Component.literal("▲").withStyle(ChatFormatting.GREEN),
@@ -63,29 +65,33 @@ public class PCSortPanel {
                 sortManager.toggleAscending();
                 updateAscDescButton();
             }
-        ).bounds(x, y + TOGGLE_HEIGHT + 2, 20, BUTTON_HEIGHT).build();
-        ascDescButton.setTooltip(Tooltip.create(Component.literal("Toggle ascending/descending")));
+        ).bounds(x + 3, y + TOGGLE_HEIGHT + 2, 19, BUTTON_HEIGHT).build();
+        ascDescButton.setTooltip(Tooltip.create(
+            Component.translatable("cobblemon_showdown.pc_sort.order.description")));
 
         sortBoxButton = Button.builder(
-            Component.literal("Box").withStyle(ChatFormatting.AQUA),
+            Component.translatable("cobblemon_showdown.pc_sort.sort_box").withStyle(ChatFormatting.AQUA),
             btn -> sortCurrentBox()
-        ).bounds(x + 22, y + TOGGLE_HEIGHT + 2, 30, BUTTON_HEIGHT).build();
-        sortBoxButton.setTooltip(Tooltip.create(Component.literal("Sort current box")));
+        ).bounds(x + 24, y + TOGGLE_HEIGHT + 2, 29, BUTTON_HEIGHT).build();
+        sortBoxButton.setTooltip(Tooltip.create(
+            Component.translatable("cobblemon_showdown.pc_sort.sort_box.description")));
 
         sortAllButton = Button.builder(
-            Component.literal("All").withStyle(ChatFormatting.GOLD),
+            Component.translatable("cobblemon_showdown.pc_sort.sort_all").withStyle(ChatFormatting.GOLD),
             btn -> sortAllBoxes()
-        ).bounds(x + 54, y + TOGGLE_HEIGHT + 2, 30, BUTTON_HEIGHT).build();
-        sortAllButton.setTooltip(Tooltip.create(Component.literal("Sort all boxes")));
+        ).bounds(x + 55, y + TOGGLE_HEIGHT + 2, 29, BUTTON_HEIGHT).build();
+        sortAllButton.setTooltip(Tooltip.create(
+            Component.translatable("cobblemon_showdown.pc_sort.sort_all.description")));
 
         int buttonY = y + TOGGLE_HEIGHT + 2 + BUTTON_HEIGHT + BUTTON_SPACING + 2;
         for (PCSortManager.SortCriteria criteria : PCSortManager.SortCriteria.values()) {
             final PCSortManager.SortCriteria c = criteria;
             Button btn = Button.builder(
-                Component.literal(getShortName(criteria)),
+                getShortName(criteria),
                 b -> selectCriteria(c)
-            ).bounds(x, buttonY, PANEL_WIDTH - 6, BUTTON_HEIGHT).build();
-            btn.setTooltip(Tooltip.create(Component.literal("Sort by " + criteria.getDisplayName())));
+            ).bounds(x + 3, buttonY, PANEL_WIDTH - 9, BUTTON_HEIGHT).build();
+            btn.setTooltip(Tooltip.create(Component.translatable(
+                "cobblemon_showdown.pc_sort.sort_by" , criteria.getTranslatedName())));
             criteriaButtons.add(btn);
             buttonY += BUTTON_HEIGHT + BUTTON_SPACING;
         }
@@ -93,38 +99,30 @@ public class PCSortPanel {
         updateCriteriaButtonStyles();
     }
 
-    private String getShortName(PCSortManager.SortCriteria criteria) {
-        switch (criteria) {
-            case IV_TOTAL: return "IV Total";
-            case BST: return "Base Stats";
-            case DEX_NUMBER: return "Dex #";
-            case NAME: return "Name";
-            case LEVEL: return "Level";
-            case GENDER: return "Gender";
-            case SHINY: return "Shiny";
-            case CATCH_DATE: return "Catch Date";
-            case FRIENDSHIP: return "Friendship";
-            case NATURE: return "Nature";
-            default: return criteria.getDisplayName();
-        }
+    private Component getShortName(PCSortManager.SortCriteria criteria) {
+        return criteria.getTranslatedNameShort();
     }
 
     private void toggleExpanded() {
         expanded = !expanded;
         if (expanded) {
-            toggleButton.setMessage(Component.literal("Sort ▼").withStyle(ChatFormatting.WHITE));
+            toggleButton.setMessage(Component.translatable("cobblemon_showdown.pc_sort.sort.expanded")
+                .withStyle(ChatFormatting.WHITE));
         } else {
-            toggleButton.setMessage(Component.literal("Sort").withStyle(ChatFormatting.WHITE));
+            toggleButton.setMessage(Component.translatable("cobblemon_showdown.pc_sort.sort")
+                .withStyle(ChatFormatting.WHITE));
         }
     }
 
     private void updateAscDescButton() {
         if (sortManager.isAscending()) {
             ascDescButton.setMessage(Component.literal("▲").withStyle(ChatFormatting.GREEN));
-            ascDescButton.setTooltip(Tooltip.create(Component.literal("Ascending (click to change)")));
+            ascDescButton.setTooltip(Tooltip.create(
+                Component.translatable("cobblemon_showdown.pc_sort.order.ascending")));
         } else {
             ascDescButton.setMessage(Component.literal("▼").withStyle(ChatFormatting.RED));
-            ascDescButton.setTooltip(Tooltip.create(Component.literal("Descending (click to change)")));
+            ascDescButton.setTooltip(Tooltip.create(
+                Component.translatable("cobblemon_showdown.pc_sort.order.descending")));
         }
     }
 
@@ -139,9 +137,15 @@ public class PCSortPanel {
         for (PCSortManager.SortCriteria criteria : PCSortManager.SortCriteria.values()) {
             Button btn = criteriaButtons.get(index);
             if (criteria == current) {
-                btn.setMessage(Component.literal("● " + getShortName(criteria)).withStyle(ChatFormatting.YELLOW));
+                btn.setMessage(Component.translatable(
+                    "cobblemon_showdown.pc_sort.selected",
+                    getShortName(criteria)
+                ).withStyle(ChatFormatting.YELLOW));
             } else {
-                btn.setMessage(Component.literal("  " + getShortName(criteria)).withStyle(ChatFormatting.GRAY));
+                btn.setMessage(Component.translatable(
+                    "cobblemon_showdown.pc_sort.not_selected",
+                    getShortName(criteria)
+                ).withStyle(ChatFormatting.GRAY));
             }
             index++;
         }
@@ -195,7 +199,7 @@ public class PCSortPanel {
 
         if (sortManager.isSorting()) {
             graphics.drawString(Minecraft.getInstance().font,
-                "Sorting...", x + 2, y + TOGGLE_HEIGHT + 4, 0xFFFFFF00);
+                Component.translatable("cobblemon_showdown.pc_sort.sorting"), x + 2, y + TOGGLE_HEIGHT + 4, 0xFFFFFF00);
             graphics.pose().popPose();
             return;
         }
@@ -262,9 +266,11 @@ public class PCSortPanel {
     public void setExpanded(boolean expanded) {
         this.expanded = expanded;
         if (expanded) {
-            toggleButton.setMessage(Component.literal("Sort ▼").withStyle(ChatFormatting.WHITE));
+            toggleButton.setMessage(Component.translatable("cobblemon_showdown.pc_sort.sort.expanded")
+                .withStyle(ChatFormatting.WHITE));
         } else {
-            toggleButton.setMessage(Component.literal("Sort").withStyle(ChatFormatting.WHITE));
+            toggleButton.setMessage(Component.translatable("cobblemon_showdown.pc_sort.sort")
+                .withStyle(ChatFormatting.WHITE));
         }
     }
 }

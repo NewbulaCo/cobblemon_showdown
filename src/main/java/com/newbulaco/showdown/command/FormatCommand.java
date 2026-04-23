@@ -77,13 +77,13 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         Format format = formatManager.getFormat(formatId);
         if (format == null) {
-            sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
             return 0;
         }
 
@@ -98,18 +98,18 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         var formats = formatManager.getAllFormats();
         if (formats.isEmpty()) {
-            sendWarning(context.getSource(), "No formats available");
+            sendWarning(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_format"));
             return 0;
         }
 
-        MutableComponent message = Component.literal("Available Formats (" + formats.size() + "):\n")
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
+        MutableComponent message = Component.translatable("command.cobblemon_showdown.format.available_formats", formats.size())
+                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD).append("\n");
 
         for (var entry : formats.entrySet()) {
             String id = entry.getKey();
@@ -124,7 +124,7 @@ public class FormatCommand {
 
             formatLine.withStyle(style -> style
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                            Component.literal("Click for details")))
+                            Component.translatable("command.cobblemon_showdown.format.detail")))
                     .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,
                             "/showdown format " + id)));
 
@@ -140,12 +140,12 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         if (formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), "Format '" + formatId + "' already exists");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.id_duplicated", formatId));
             return 0;
         }
 
@@ -153,11 +153,11 @@ public class FormatCommand {
         newFormat.setDescription("Created via command");
 
         if (formatManager.saveFormat(formatId, newFormat)) {
-            sendSuccess(context.getSource(), "Created format: " + formatId);
-            sendInfo(context.getSource(), "Edit the JSON file in config/cobblemon_showdown/formats/" + formatId + ".json");
+            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.success", formatId));
+            sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.path", formatId));
             return 1;
         } else {
-            sendError(context.getSource(), "Failed to create format");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.failed"));
             return 0;
         }
     }
@@ -167,18 +167,18 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         if (!formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
             return 0;
         }
 
-        sendInfo(context.getSource(), "Edit the format JSON file:");
-        sendInfo(context.getSource(), "config/cobblemon_showdown/formats/" + formatId + ".json");
-        sendInfo(context.getSource(), "Changes will be automatically reloaded");
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg1"));
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg2"));
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg3"));
         return 1;
     }
 
@@ -188,25 +188,25 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         if (!formatManager.hasFormat(sourceId)) {
-            sendError(context.getSource(), "Source format '" + sourceId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.source_error", sourceId));
             return 0;
         }
 
         if (formatManager.hasFormat(targetId)) {
-            sendError(context.getSource(), "Target format '" + targetId + "' already exists");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.target_error", targetId));
             return 0;
         }
 
         if (formatManager.duplicateFormat(sourceId, targetId)) {
-            sendSuccess(context.getSource(), "Duplicated " + sourceId + " → " + targetId);
+            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.success", sourceId, targetId));
             return 1;
         } else {
-            sendError(context.getSource(), "Failed to duplicate format");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.failed"));
             return 0;
         }
     }
@@ -216,20 +216,20 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         if (!formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
             return 0;
         }
 
         if (formatManager.deleteFormat(formatId)) {
-            sendSuccess(context.getSource(), "Deleted format: " + formatId);
+            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.delete.success", formatId));
             return 1;
         } else {
-            sendError(context.getSource(), "Failed to delete format");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.delete.failed"));
             return 0;
         }
     }
@@ -239,30 +239,30 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         String json = formatManager.exportFormat(formatId);
         if (json == null) {
-            sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
             return 0;
         }
 
-        MutableComponent message = Component.literal("Format Export: " + formatId)
+        MutableComponent message = Component.translatable("command.cobblemon_showdown.format.export.success", formatId)
                 .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD);
 
         MutableComponent jsonComponent = Component.literal(json)
                 .withStyle(ChatFormatting.GRAY)
                 .withStyle(style -> style
                         .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                                Component.literal("Click to copy")))
+                                Component.translatable("command.cobblemon_showdown.format.export.click")))
                         .withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, json)));
 
         context.getSource().sendSuccess(() -> message, false);
         context.getSource().sendSuccess(() -> jsonComponent, false);
 
-        sendInfo(context.getSource(), "Click the JSON above to copy to clipboard");
+        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.export.clipboard"));
         return 1;
     }
 
@@ -272,15 +272,15 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         if (formatManager.importFormat(formatId, json)) {
-            sendSuccess(context.getSource(), "Imported format: " + formatId);
+            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.import.success", formatId));
             return 1;
         } else {
-            sendError(context.getSource(), "Failed to import format (invalid JSON?)");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.import.failed"));
             return 0;
         }
     }
@@ -290,13 +290,13 @@ public class FormatCommand {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
 
         if (formatManager == null) {
-            sendError(context.getSource(), "Format manager not initialized");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
             return 0;
         }
 
         Format format = formatManager.getFormat(formatId);
         if (format == null) {
-            sendError(context.getSource(), "Format '" + formatId + "' does not exist");
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
             return 0;
         }
 
@@ -305,48 +305,44 @@ public class FormatCommand {
 
             PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
             if (party == null) {
-                sendError(context.getSource(), "Could not access your party");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.test.no_party"));
                 return 0;
             }
 
             FormatValidator validator = new FormatValidator();
             List<String> errors = validator.validateParty(party, format);
 
-            sendInfo(context.getSource(), "Testing against format: " + format.getName());
+            sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.test.run", format.getName()));
 
             if (errors.isEmpty()) {
-                sendSuccess(context.getSource(), "Your party is valid for this format!");
+                sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.test.success"));
             } else {
-                sendError(context.getSource(), "Your party has " + errors.size() + " issue(s):");
+                sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.test.failed", errors.size()));
                 for (String error : errors) {
-                    sendWarning(context.getSource(), "  - " + error);
+                    sendWarning(context.getSource(), Component.literal("  - " + error));
                 }
             }
 
             return errors.isEmpty() ? 1 : 0;
         } catch (Exception e) {
-            sendError(context.getSource(), "Error validating party: " + e.getMessage());
+            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.test.error", e.getMessage()));
             return 0;
         }
     }
 
-    private static void sendSuccess(CommandSourceStack source, String message) {
-        source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.GREEN), false);
+    private static void sendSuccess(CommandSourceStack source, MutableComponent message) {
+        source.sendSuccess(() -> message.withStyle(ChatFormatting.GREEN), false);
     }
 
-    private static void sendSuccess(CommandSourceStack source, Component message) {
-        source.sendSuccess(() -> message, false);
+    private static void sendError(CommandSourceStack source, MutableComponent message) {
+        source.sendFailure(message.withStyle(ChatFormatting.RED));
     }
 
-    private static void sendError(CommandSourceStack source, String message) {
-        source.sendFailure(Component.literal(message).withStyle(ChatFormatting.RED));
+    private static void sendWarning(CommandSourceStack source, MutableComponent message) {
+        source.sendSuccess(() -> message.withStyle(ChatFormatting.YELLOW), false);
     }
 
-    private static void sendWarning(CommandSourceStack source, String message) {
-        source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.YELLOW), false);
-    }
-
-    private static void sendInfo(CommandSourceStack source, String message) {
-        source.sendSuccess(() -> Component.literal(message).withStyle(ChatFormatting.GRAY), false);
+    private static void sendInfo(CommandSourceStack source, MutableComponent message) {
+        source.sendSuccess(() -> message.withStyle(ChatFormatting.GRAY), false);
     }
 }

@@ -1,5 +1,7 @@
 package com.newbulaco.showdown.client.battle;
 
+import net.minecraft.network.chat.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -253,19 +255,21 @@ public class TypeEffectiveness {
     }
 
     public enum EffectivenessCategory {
-        IMMUNE(0xFF888888, "Immune"),
-        QUARTER(0xFFFF4444, "x0.25"),
-        HALF(0xFFFF8866, "x0.5"),
-        NEUTRAL(0xFFFFFFFF, ""),
-        DOUBLE(0xFF88FF88, "x2"),
-        QUADRUPLE(0xFF44FF44, "x4");
+        IMMUNE(0xFF888888, "Immune", Component.translatable("cobblemon_showdown.battle_overlay.effectiveness.immune")),
+        QUARTER(0xFFFF4444, "x0.25", Component.translatable("cobblemon_showdown.battle_overlay.effectiveness", 0.25)),
+        HALF(0xFFFF8866, "x0.5", Component.translatable("cobblemon_showdown.battle_overlay.effectiveness", 0.5)),
+        NEUTRAL(0xFFFFFFFF, "", Component.empty()),
+        DOUBLE(0xFF88FF88, "x2", Component.translatable("cobblemon_showdown.battle_overlay.effectiveness", 2)),
+        QUADRUPLE(0xFF44FF44, "x4", Component.translatable("cobblemon_showdown.battle_overlay.effectiveness", 4));
 
         public final int color;
         public final String text;
+        public final Component translatedText;
 
-        EffectivenessCategory(int color, String text) {
+        EffectivenessCategory(int color, String text, Component translatedText) {
             this.color = color;
             this.text = text;
+            this.translatedText = translatedText;
         }
 
         public static EffectivenessCategory fromMultiplier(double multiplier) {
