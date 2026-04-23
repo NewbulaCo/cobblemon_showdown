@@ -9,12 +9,12 @@ Thanks for wanting to help out with Cobblemon Showdown.
 - Use the gradle wrapper: `./gradlew build`
 - `./gradlew runClient` / `./gradlew runServer` to test changes in-dev
 - `./gradlew genIntellijRuns` (or `genEclipseRuns`) to generate IDE run configs
-- Cobblemon is a compile-time-only dependency in dev — drop a matching Cobblemon jar in `run/mods/` to actually run battles
+- (Cobblemon)[https://gitlab.com/cable-mc/cobblemon] is a compile-time-only dependency in dev, drop a matching Cobblemon jar in `run/mods/` to actually run battles
 
 ## Submitting changes
 
 - Branch off `main` and keep PRs focused on one thing
-- Run `./gradlew build` before opening a PR — it should pass clean
+- Before opening a PR, run `./gradlew build` to confirm it runs
 
 ## Translations
 
@@ -28,4 +28,4 @@ New languages are very welcome. Lang files live in `src/main/resources/assets/co
 
 **Testing:**
 
-Set your client language in Minecraft's language settings, launch with `./gradlew runClient`, and walk through battles, the PC sort panel, pokemon tooltips, `/showdown` commands, and the keybinds menu. Missing keys fall back to the English value rather than erroring, so gaps won't break the build — they just leave English text showing in your language.
+Set your client language in Minecraft's language settings, launch with `./gradlew runClient`, and walk through battles, the PC sort panel, pokemon tooltips, `/showdown` commands, and the keybinds menu. Any missing keys will fall back to English.
