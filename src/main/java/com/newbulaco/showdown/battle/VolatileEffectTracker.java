@@ -11,6 +11,7 @@ import com.cobblemon.mod.common.battles.actor.PlayerBattleActor;
 import com.cobblemon.mod.common.battles.pokemon.BattlePokemon;
 import com.newbulaco.showdown.CobblemonShowdown;
 import com.newbulaco.showdown.network.ShowdownNetwork;
+import com.newbulaco.showdown.network.packets.BattleClearPacket;
 import com.newbulaco.showdown.network.packets.FieldStatusPacket;
 import com.newbulaco.showdown.network.packets.PartyStatusPacket;
 import com.newbulaco.showdown.network.packets.SideConditionPacket;
@@ -132,6 +133,10 @@ public class VolatileEffectTracker {
     }
 
     private void onBattleEnded(UUID battleId) {
+        // wild and npc battles don't go through CobblemonBattleListener's clear-packet path,
+        // so do it here to keep client side conditions, volatiles, etc. from leaking across battles
+        sendClearPacketToTrackedPlayers(battleId);
+
         trackedEffects.remove(battleId);
         trackedStatStages.remove(battleId);
         pokemonSides.remove(battleId);
@@ -147,6 +152,22 @@ public class VolatileEffectTracker {
         terrainStartTurn.remove(battleId);
         terrainDuration.remove(battleId);
         roomStartTurns.remove(battleId);
+    }
+
+    private void sendClearPacketToTrackedPlayers(UUID battleId) {
+        Set<UUID> players = battlePlayers.get(battleId);
+        if (players == null || players.isEmpty()) return;
+
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        BattleClearPacket packet = new BattleClearPacket(battleId);
+        for (UUID playerUuid : players) {
+            ServerPlayer player = server.getPlayerList().getPlayer(playerUuid);
+            if (player != null) {
+                ShowdownNetwork.sendToPlayer(packet, player);
+            }
+        }
     }
 
     public void tick() {

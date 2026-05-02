@@ -3,6 +3,7 @@ package com.newbulaco.showdown.network.packets;
 import com.newbulaco.showdown.client.battle.BattleStatusTracker;
 import com.newbulaco.showdown.client.battle.ClientPartyStatusManager;
 import com.newbulaco.showdown.client.battle.ClientSideConditionManager;
+import com.newbulaco.showdown.client.battle.ClientStatChangeManager;
 import com.newbulaco.showdown.client.battle.ClientVolatileEffectManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.api.distmarker.Dist;
@@ -42,6 +43,7 @@ public class BattleClearPacket {
         ClientSideConditionManager.getInstance().clearBattle(battleId);
         ClientVolatileEffectManager.getInstance().clearBattle(battleId);
         ClientPartyStatusManager.getInstance().clearBattle(battleId);
+        ClientStatChangeManager.getInstance().clearBattle(battleId);
         BattleStatusTracker.clearAll();
     }
 
