@@ -7,8 +7,6 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.newbulaco.showdown.CobblemonShowdown;
 import com.newbulaco.showdown.battle.BattleManager;
 import com.newbulaco.showdown.battle.TeamPreview;
-import com.newbulaco.showdown.format.Format;
-import com.newbulaco.showdown.format.FormatManager;
 import com.newbulaco.showdown.util.MessageUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -16,8 +14,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.Collection;
 
 public class ShowdownCommand {
 
@@ -78,32 +74,6 @@ public class ShowdownCommand {
                     return battleManager.abortBattle(player) ? 1 : 0;
                 }));
 
-        showdownCommand.then(Commands.literal("formats")
-                .executes(ctx -> {
-                    ServerPlayer player = ctx.getSource().getPlayerOrException();
-                    FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-                    if (formatManager == null) {
-                        MessageUtil.error(player, Component.translatable("command.cobblemon_showdown.format.no_manager"));
-                        return 0;
-                    }
-
-                    Collection<String> formatIds = formatManager.getFormatIds();
-                    if (formatIds.isEmpty()) {
-                        MessageUtil.info(player, Component.translatable("command.cobblemon_showdown.format.no_format"));
-                        return 1;
-                    }
-
-                    MessageUtil.info(player, Component.translatable("command.cobblemon_showdown.format.available_formats", formatIds.size()));
-                    for (String formatId : formatIds) {
-                        Format format = formatManager.getFormat(formatId);
-                        if (format != null) {
-                            player.sendSystemMessage(Component.literal("  §b" + formatId + " §7- " + format.getName()));
-                        }
-                    }
-                    return 1;
-                }));
-
         showdownCommand.then(Commands.literal("help")
                 .executes(ctx -> {
                     ServerPlayer player = ctx.getSource().getPlayerOrException();
@@ -144,7 +114,7 @@ public class ShowdownCommand {
 
         player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.help.info")
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
-        sendHelpLine(player, "/showdown formats",
+        sendHelpLine(player, "/showdown format list",
             Component.translatable("command.cobblemon_showdown.help.info.format_view"));
         sendHelpLine(player, "/showdown format_party_test <format>",
             Component.translatable("command.cobblemon_showdown.help.info.format_test"));
