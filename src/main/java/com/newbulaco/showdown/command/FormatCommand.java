@@ -26,7 +26,6 @@ public class FormatCommand {
 
     // TODO: integrate with Forge permission API
     private static final int OP_EXPORT = 2;
-    private static final int OP_CREATE = 3;
 
     private static final SuggestionProvider<CommandSourceStack> FORMAT_SUGGESTIONS = (context, builder) -> {
         FormatManager formatManager = CobblemonShowdown.getFormatManager();
@@ -43,26 +42,9 @@ public class FormatCommand {
         parent.then(Commands.literal("format")
                 .then(Commands.argument("formatId", StringArgumentType.word())
                         .suggests(FORMAT_SUGGESTIONS)
-                        .then(Commands.literal("create")
-                                .requires(source -> source.hasPermission(OP_CREATE))
-                                .executes(FormatCommand::createFormat))
-                        .then(Commands.literal("edit")
-                                .requires(source -> source.hasPermission(OP_CREATE))
-                                .executes(FormatCommand::editFormat))
-                        .then(Commands.literal("duplicate")
-                                .requires(source -> source.hasPermission(OP_CREATE))
-                                .then(Commands.argument("newId", StringArgumentType.word())
-                                        .executes(FormatCommand::duplicateFormat)))
-                        .then(Commands.literal("delete")
-                                .requires(source -> source.hasPermission(OP_CREATE))
-                                .executes(FormatCommand::deleteFormat))
                         .then(Commands.literal("export")
                                 .requires(source -> source.hasPermission(OP_EXPORT))
                                 .executes(FormatCommand::exportFormat))
-                        .then(Commands.literal("import")
-                                .requires(source -> source.hasPermission(OP_CREATE))
-                                .then(Commands.argument("json", StringArgumentType.greedyString())
-                                        .executes(FormatCommand::importFormat)))
                         .executes(FormatCommand::showFormatInfo))
                 .then(Commands.literal("list")
                         .executes(FormatCommand::listFormats)))
@@ -109,18 +91,15 @@ public class FormatCommand {
         }
 
         MutableComponent message = Component.translatable("command.cobblemon_showdown.format.available_formats", formats.size())
-                .withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD).append("\n");
+                .withStyle(ChatFormatting.AQUA);
 
         for (var entry : formats.entrySet()) {
             String id = entry.getKey();
             Format format = entry.getValue();
 
-            MutableComponent formatLine = Component.literal("  • ")
-                    .withStyle(ChatFormatting.GRAY)
-                    .append(Component.literal(format.getName())
-                            .withStyle(ChatFormatting.YELLOW))
-                    .append(Component.literal(" (" + id + ")")
-                            .withStyle(ChatFormatting.DARK_GRAY));
+            MutableComponent formatLine = Component.literal("  ")
+                    .append(Component.literal(id).withStyle(ChatFormatting.AQUA))
+                    .append(Component.literal(" - " + format.getName()).withStyle(ChatFormatting.GRAY));
 
             formatLine.withStyle(style -> style
                     .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
@@ -131,107 +110,8 @@ public class FormatCommand {
             message.append("\n").append(formatLine);
         }
 
-        sendSuccess(context.getSource(), message);
+        context.getSource().sendSuccess(() -> message, false);
         return formats.size();
-    }
-
-    private static int createFormat(CommandContext<CommandSourceStack> context) {
-        String formatId = StringArgumentType.getString(context, "formatId");
-        FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-        if (formatManager == null) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
-            return 0;
-        }
-
-        if (formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.id_duplicated", formatId));
-            return 0;
-        }
-
-        Format newFormat = new Format(formatId.replace("_", " "));
-        newFormat.setDescription("Created via command");
-
-        if (formatManager.saveFormat(formatId, newFormat)) {
-            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.success", formatId));
-            sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.path", formatId));
-            return 1;
-        } else {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.create.failed"));
-            return 0;
-        }
-    }
-
-    private static int editFormat(CommandContext<CommandSourceStack> context) {
-        String formatId = StringArgumentType.getString(context, "formatId");
-        FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-        if (formatManager == null) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
-            return 0;
-        }
-
-        if (!formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
-            return 0;
-        }
-
-        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg1"));
-        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg2"));
-        sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.edit.msg3"));
-        return 1;
-    }
-
-    private static int duplicateFormat(CommandContext<CommandSourceStack> context) {
-        String sourceId = StringArgumentType.getString(context, "formatId");
-        String targetId = StringArgumentType.getString(context, "newId");
-        FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-        if (formatManager == null) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
-            return 0;
-        }
-
-        if (!formatManager.hasFormat(sourceId)) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.source_error", sourceId));
-            return 0;
-        }
-
-        if (formatManager.hasFormat(targetId)) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.target_error", targetId));
-            return 0;
-        }
-
-        if (formatManager.duplicateFormat(sourceId, targetId)) {
-            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.success", sourceId, targetId));
-            return 1;
-        } else {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.duplicate.failed"));
-            return 0;
-        }
-    }
-
-    private static int deleteFormat(CommandContext<CommandSourceStack> context) {
-        String formatId = StringArgumentType.getString(context, "formatId");
-        FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-        if (formatManager == null) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
-            return 0;
-        }
-
-        if (!formatManager.hasFormat(formatId)) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.unknown_format", formatId));
-            return 0;
-        }
-
-        if (formatManager.deleteFormat(formatId)) {
-            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.delete.success", formatId));
-            return 1;
-        } else {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.delete.failed"));
-            return 0;
-        }
     }
 
     private static int exportFormat(CommandContext<CommandSourceStack> context) {
@@ -264,25 +144,6 @@ public class FormatCommand {
 
         sendInfo(context.getSource(), Component.translatable("command.cobblemon_showdown.format.export.clipboard"));
         return 1;
-    }
-
-    private static int importFormat(CommandContext<CommandSourceStack> context) {
-        String formatId = StringArgumentType.getString(context, "formatId");
-        String json = StringArgumentType.getString(context, "json");
-        FormatManager formatManager = CobblemonShowdown.getFormatManager();
-
-        if (formatManager == null) {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.no_manager"));
-            return 0;
-        }
-
-        if (formatManager.importFormat(formatId, json)) {
-            sendSuccess(context.getSource(), Component.translatable("command.cobblemon_showdown.format.import.success", formatId));
-            return 1;
-        } else {
-            sendError(context.getSource(), Component.translatable("command.cobblemon_showdown.format.import.failed"));
-            return 0;
-        }
     }
 
     private static int testParty(CommandContext<CommandSourceStack> context) {

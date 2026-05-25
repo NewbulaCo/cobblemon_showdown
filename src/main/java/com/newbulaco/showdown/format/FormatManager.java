@@ -212,7 +212,7 @@ public class FormatManager {
         }
     }
 
-    public boolean saveFormat(String formatId, Format format) {
+    private boolean saveFormat(String formatId, Format format) {
         if (formatId == null || formatId.isEmpty()) {
             LOGGER.error("Cannot save format with null or empty ID");
             return false;
@@ -228,25 +228,6 @@ public class FormatManager {
             return true;
         } catch (IOException e) {
             LOGGER.error("Failed to save format {}", formatId, e);
-            return false;
-        }
-    }
-
-    public boolean deleteFormat(String formatId) {
-        formatId = sanitizeFormatId(formatId);
-        File file = formatsDir.resolve(formatId + ".json").toFile();
-
-        if (!file.exists()) {
-            LOGGER.warn("Cannot delete format {}, file does not exist", formatId);
-            return false;
-        }
-
-        if (file.delete()) {
-            formats.remove(formatId);
-            LOGGER.info("Deleted format: {}", formatId);
-            return true;
-        } else {
-            LOGGER.error("Failed to delete format file: {}", file.getName());
             return false;
         }
     }
@@ -273,34 +254,6 @@ public class FormatManager {
             return null;
         }
         return GSON.toJson(format);
-    }
-
-    public boolean importFormat(String formatId, String json) {
-        try {
-            Format format = GSON.fromJson(json, Format.class);
-            if (format.getName() == null || format.getName().isEmpty()) {
-                LOGGER.error("Imported format has no name");
-                return false;
-            }
-            return saveFormat(formatId, format);
-        } catch (Exception e) {
-            LOGGER.error("Failed to import format from JSON", e);
-            return false;
-        }
-    }
-
-    // deep-copy via JSON round-trip
-    public boolean duplicateFormat(String sourceId, String targetId) {
-        Format source = getFormat(sourceId);
-        if (source == null) {
-            LOGGER.error("Cannot duplicate format {}, does not exist", sourceId);
-            return false;
-        }
-
-        String json = GSON.toJson(source);
-        Format copy = GSON.fromJson(json, Format.class);
-
-        return saveFormat(targetId, copy);
     }
 
     private String sanitizeFormatId(String id) {

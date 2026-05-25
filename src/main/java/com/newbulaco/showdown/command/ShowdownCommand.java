@@ -137,20 +137,6 @@ public class ShowdownCommand {
             sendHelpLine(player, "/showdown format <id> export",
                 Component.translatable("command.cobblemon_showdown.help.level2.format_export"));
         }
-
-        if (player.hasPermissions(3)) {
-            player.sendSystemMessage(Component.literal(""));
-            player.sendSystemMessage(Component.translatable("command.cobblemon_showdown.help.level3")
-                    .withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
-            sendHelpLine(player, "/showdown format <id> create",
-                Component.translatable("command.cobblemon_showdown.help.level3.format_create"));
-            sendHelpLine(player, "/showdown format <id> edit",
-                Component.translatable("command.cobblemon_showdown.help.level3.format_edit"));
-            sendHelpLine(player, "/showdown format <id> delete",
-                Component.translatable("command.cobblemon_showdown.help.level3.format_delete"));
-            sendHelpLine(player, "/showdown format <id> import <json>",
-                Component.translatable("command.cobblemon_showdown.help.level3.format_import"));
-        }
     }
 
     private static void sendHelpLine(ServerPlayer player, String command, Component description) {
