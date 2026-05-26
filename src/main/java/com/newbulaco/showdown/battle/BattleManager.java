@@ -44,9 +44,6 @@ public class BattleManager {
     // player UUID -> pokemon UUID -> held item
     private final Map<UUID, Map<UUID, ItemStack>> storedHeldItems = new ConcurrentHashMap<>();
 
-    // player UUID -> pokemon UUID -> original level
-    private final Map<UUID, Map<UUID, Integer>> storedLevels = new ConcurrentHashMap<>();
-
     private MinecraftServer server;
 
     public void initialize(MinecraftServer server) {
@@ -107,7 +104,7 @@ public class BattleManager {
                 || format.hasTeamPreview()) {
             startPartySelection(player1, player2, format, "challenge", itemBet);
         } else {
-            proceedToTeamPreviewOrBattle(player1, player2, format, "challenge", itemBet, null, null);
+            proceedToBattle(player1, player2, format, "challenge", itemBet, null, null);
         }
 
         return true;
@@ -118,7 +115,7 @@ public class BattleManager {
         PartySelectionSession session = new PartySelectionSession(player1, player2, format, context);
 
         session.setOnBothSelected((player1Slots, player2Slots) -> {
-            proceedToTeamPreviewOrBattle(player1, player2, format, context, itemBet, player1Slots, player2Slots);
+            proceedToBattle(player1, player2, format, context, itemBet, player1Slots, player2Slots);
         });
 
         session.openMenus();
@@ -128,7 +125,7 @@ public class BattleManager {
             format.getName(), format.getPartySize());
     }
 
-    private void proceedToTeamPreviewOrBattle(ServerPlayer player1, ServerPlayer player2, Format format,
+    private void proceedToBattle(ServerPlayer player1, ServerPlayer player2, Format format,
                                                String context, PrizeHandler.ItemBet itemBet,
                                                List<Integer> player1Slots, List<Integer> player2Slots) {
         ShowdownBattle battle = new ShowdownBattle(player1, player2, format, context);
@@ -140,8 +137,7 @@ public class BattleManager {
             battle.setSelectedSlots(player2.getUUID(), player2Slots);
         }
 
-        // if slots were provided from GUI, the first selected Pokemon is the lead;
-        // skip chat-based TeamPreview since lead selection was already done in GUI
+        // if slots were provided from the GUI, the first selected Pokemon is the lead
         if (player1Slots != null && !player1Slots.isEmpty() && player2Slots != null && !player2Slots.isEmpty()) {
             PlayerPartyStore party1 = Cobblemon.INSTANCE.getStorage().getParty(player1);
             PlayerPartyStore party2 = Cobblemon.INSTANCE.getStorage().getParty(player2);
@@ -162,16 +158,7 @@ public class BattleManager {
             }
         }
 
-        if (format.hasTeamPreview()) {
-            MessageUtil.info(player1, Component.translatable("cobblemon_showdown.showdown_battle.setup.preview"));
-            MessageUtil.info(player2, Component.translatable("cobblemon_showdown.showdown_battle.setup.preview"));
-
-            TeamPreview.startPreview(battle, (lead1Uuid, lead2Uuid) -> {
-                startBattleWithLeads(battle, lead1Uuid, lead2Uuid, itemBet);
-            });
-        } else {
-            startBattleImmediate(battle, itemBet);
-        }
+        startBattleImmediate(battle, itemBet);
     }
 
     private int countValidPokemon(ServerPlayer player) {
@@ -211,10 +198,11 @@ public class BattleManager {
         int player1PartySize = countValidPokemon(player1);
         int player2PartySize = countValidPokemon(player2);
 
-        if (player1PartySize > format.getPartySize() || player2PartySize > format.getPartySize()) {
+        if (player1PartySize > format.getPartySize() || player2PartySize > format.getPartySize()
+                || format.hasTeamPreview()) {
             startPartySelection(player1, player2, format, "challenge", null);
         } else {
-            proceedToTeamPreviewOrBattle(player1, player2, format, "challenge", null, null, null);
+            proceedToBattle(player1, player2, format, "challenge", null, null, null);
         }
     }
 
@@ -543,62 +531,6 @@ public class BattleManager {
         }
     }
 
-    private void applyLevelScaling(ServerPlayer player, int targetLevel) {
-        try {
-            PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-            Map<UUID, Integer> playerLevels = new HashMap<>();
-
-            for (int i = 0; i < party.size(); i++) {
-                Pokemon pokemon = party.get(i);
-                if (pokemon != null) {
-                    int originalLevel = pokemon.getLevel();
-                    playerLevels.put(pokemon.getUuid(), originalLevel);
-
-                    if (originalLevel != targetLevel) {
-                        pokemon.setLevel(targetLevel);
-                        LOGGER.debug("Scaled {} from level {} to {}",
-                                pokemon.getSpecies().getName(), originalLevel, targetLevel);
-                    }
-                }
-            }
-
-            if (!playerLevels.isEmpty()) {
-                storedLevels.put(player.getUUID(), playerLevels);
-                LOGGER.info("Applied level scaling to {} Pokemon for {} (target: {})",
-                        playerLevels.size(), player.getName().getString(), targetLevel);
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error applying level scaling for {}", player.getName().getString(), e);
-        }
-    }
-
-    private void restoreLevels(ServerPlayer player) {
-        Map<UUID, Integer> playerLevels = storedLevels.remove(player.getUUID());
-        if (playerLevels == null || playerLevels.isEmpty()) {
-            return;
-        }
-
-        try {
-            PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-
-            for (int i = 0; i < party.size(); i++) {
-                Pokemon pokemon = party.get(i);
-                if (pokemon != null) {
-                    Integer originalLevel = playerLevels.get(pokemon.getUuid());
-                    if (originalLevel != null && pokemon.getLevel() != originalLevel) {
-                        pokemon.setLevel(originalLevel);
-                        LOGGER.debug("Restored {} to level {}",
-                                pokemon.getSpecies().getName(), originalLevel);
-                    }
-                }
-            }
-
-            LOGGER.info("Restored original levels for {}", player.getName().getString());
-        } catch (Exception e) {
-            LOGGER.error("Error restoring levels for {}", player.getName().getString(), e);
-        }
-    }
-
     private void recordMatchResult(ShowdownBattle battle, UUID winnerUuid) {
         HistoryStorage historyStorage = CobblemonShowdown.getHistoryStorage();
         if (historyStorage == null) return;
@@ -712,7 +644,6 @@ public class BattleManager {
         UUID playerUuid = player.getUUID();
 
         PartySelectionSession.cancelSession(playerUuid);
-        TeamPreview.cancelSession(playerUuid);
 
         ShowdownBattle battle = getPlayerBattle(playerUuid);
 
@@ -727,7 +658,6 @@ public class BattleManager {
 
         if (opponent != null) {
             PartySelectionSession.cancelSession(opponent.getUUID());
-            TeamPreview.cancelSession(opponent.getUUID());
         }
 
         MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.abort.forfeit"));
@@ -767,8 +697,6 @@ public class BattleManager {
         // prevent countdowns from starting the next game after abort
         PartySelectionSession.cancelSession(playerUuid);
         PartySelectionSession.cancelSession(opponentUuid);
-        TeamPreview.cancelSession(playerUuid);
-        TeamPreview.cancelSession(opponentUuid);
 
         MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.abort_series.forfeit"));
         if (opponent != null) {
@@ -856,41 +784,7 @@ public class BattleManager {
             }
         }
 
-        restoreLevelsForRejoiningPlayer(player);
         restoreHeldItemsForRejoiningPlayer(player);
-    }
-
-    private void restoreLevelsForRejoiningPlayer(ServerPlayer player) {
-        Map<UUID, Integer> playerLevels = storedLevels.remove(player.getUUID());
-        if (playerLevels == null || playerLevels.isEmpty()) {
-            return;
-        }
-
-        try {
-            PlayerPartyStore party = Cobblemon.INSTANCE.getStorage().getParty(player);
-            int restored = 0;
-
-            for (int i = 0; i < party.size(); i++) {
-                Pokemon pokemon = party.get(i);
-                if (pokemon != null) {
-                    Integer originalLevel = playerLevels.get(pokemon.getUuid());
-                    if (originalLevel != null && pokemon.getLevel() != originalLevel) {
-                        pokemon.setLevel(originalLevel);
-                        restored++;
-                        LOGGER.debug("Restored {} to level {} on rejoin",
-                                pokemon.getSpecies().getName(), originalLevel);
-                    }
-                }
-            }
-
-            if (restored > 0) {
-                MessageUtil.info(player, Component.translatable("cobblemon_showdown.showdown_battle.rejoin.restore_level"));
-                LOGGER.info("Restored {} Pokemon levels for rejoining player {}",
-                        restored, player.getName().getString());
-            }
-        } catch (Exception e) {
-            LOGGER.error("Error restoring levels for rejoining player {}", player.getName().getString(), e);
-        }
     }
 
     private void restoreHeldItemsForRejoiningPlayer(ServerPlayer player) {
@@ -937,8 +831,6 @@ public class BattleManager {
         showdownCobblemonBattleIds.clear();
 
         SeriesTracker.clearAll();
-
-        TeamPreview.shutdown();
 
         LOGGER.info("BattleManager shut down");
     }

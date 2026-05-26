@@ -1,12 +1,10 @@
 package com.newbulaco.showdown.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.newbulaco.showdown.CobblemonShowdown;
 import com.newbulaco.showdown.battle.BattleManager;
-import com.newbulaco.showdown.battle.TeamPreview;
 import com.newbulaco.showdown.util.MessageUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -24,14 +22,6 @@ public class ShowdownCommand {
         ChallengeCommand.register(showdownCommand);
 
         DtCommand.register(showdownCommand);
-
-        showdownCommand.then(Commands.literal("preview_select")
-                .then(Commands.argument("slot", IntegerArgumentType.integer(0, 5))
-                        .executes(ctx -> {
-                            ServerPlayer player = ctx.getSource().getPlayerOrException();
-                            int slot = IntegerArgumentType.getInteger(ctx, "slot");
-                            return TeamPreview.selectLead(player, slot) ? 1 : 0;
-                        })));
 
         showdownCommand.then(Commands.literal("spectate")
                 .then(Commands.argument("player", StringArgumentType.word())
