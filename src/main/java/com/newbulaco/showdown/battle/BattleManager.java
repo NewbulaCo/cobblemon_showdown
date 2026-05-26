@@ -84,9 +84,6 @@ public class BattleManager {
             return false;
         }
 
-        storeHeldItems(player1);
-        storeHeldItems(player2);
-
         if (format.getBestOf() > 1 && !SeriesTracker.isInSeries(player1.getUUID(), player2.getUUID())) {
             SeriesTracker.Series series = SeriesTracker.startSeries(
                     player1.getUUID(), player2.getUUID(), format, "challenge");
@@ -96,18 +93,27 @@ public class BattleManager {
             }
         }
 
+        beginSelectionOrBattle(player1, player2, format, itemBet);
+
+        return true;
+    }
+
+    // both parties are valid: open the selection GUI when a party needs narrowing or the
+    // format uses team preview (for lead/order selection), otherwise start immediately
+    private void beginSelectionOrBattle(ServerPlayer player1, ServerPlayer player2, Format format,
+                                        PrizeHandler.ItemBet itemBet) {
+        storeHeldItems(player1);
+        storeHeldItems(player2);
+
         int player1PartySize = countValidPokemon(player1);
         int player2PartySize = countValidPokemon(player2);
 
-        // use chest GUI when party needs narrowing OR when team preview is on (for lead/order selection)
         if (player1PartySize > format.getPartySize() || player2PartySize > format.getPartySize()
                 || format.hasTeamPreview()) {
             startPartySelection(player1, player2, format, "challenge", itemBet);
         } else {
             proceedToBattle(player1, player2, format, "challenge", itemBet, null, null);
         }
-
-        return true;
     }
 
     private void startPartySelection(ServerPlayer player1, ServerPlayer player2, Format format,
@@ -192,18 +198,7 @@ public class BattleManager {
             return;
         }
 
-        storeHeldItems(player1);
-        storeHeldItems(player2);
-
-        int player1PartySize = countValidPokemon(player1);
-        int player2PartySize = countValidPokemon(player2);
-
-        if (player1PartySize > format.getPartySize() || player2PartySize > format.getPartySize()
-                || format.hasTeamPreview()) {
-            startPartySelection(player1, player2, format, "challenge", null);
-        } else {
-            proceedToBattle(player1, player2, format, "challenge", null, null, null);
-        }
+        beginSelectionOrBattle(player1, player2, format, null);
     }
 
     private void startBattleImmediate(ShowdownBattle battle, PrizeHandler.ItemBet itemBet) {
