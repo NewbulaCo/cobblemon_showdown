@@ -1,5 +1,10 @@
 package com.newbulaco.showdown.battle;
 
+import com.cobblemon.mod.common.CobblemonNetwork;
+import com.cobblemon.mod.common.api.battles.model.PokemonBattle;
+import com.cobblemon.mod.common.net.messages.client.battle.BattleEndPacket;
+import com.cobblemon.mod.common.net.messages.client.battle.BattleInitializePacket;
+import com.cobblemon.mod.common.net.messages.client.battle.BattleMessagePacket;
 import com.newbulaco.showdown.network.ShowdownNetwork;
 import com.newbulaco.showdown.network.packets.SpectatorStatePacket;
 import net.minecraft.ChatFormatting;
@@ -49,6 +54,9 @@ public class SpectatorManager {
             LOGGER.info("Player {} is now spectating battle {}",
                     player.getName().getString(), battle.getBattleId());
 
+            // attach to the underlying Cobblemon battle so the real battle GUI opens
+            openCobblemonBattleView(player);
+
             player.sendSystemMessage(Component.translatable(
                 "cobblemon_showdown.battle_spectate.start",
                     battle.getPlayer1().getName(),
@@ -75,6 +83,9 @@ public class SpectatorManager {
             LOGGER.info("Player {} stopped spectating battle {}",
                     player.getName().getString(), battle.getBattleId());
 
+            // detach from the Cobblemon battle and close the spectator's battle GUI
+            closeCobblemonBattleView(player);
+
             player.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.stop")
                 .withStyle(ChatFormatting.GRAY));
 
@@ -97,6 +108,10 @@ public class SpectatorManager {
     public boolean removeSpectator(UUID playerUuid) {
         boolean removed = spectators.remove(playerUuid);
         if (removed) {
+            PokemonBattle cobblemonBattle = battle.getCobblemonBattle();
+            if (cobblemonBattle != null) {
+                cobblemonBattle.getSpectators().remove(playerUuid);
+            }
             LOGGER.info("Removed spectator {} from battle {} (disconnected)",
                     playerUuid, battle.getBattleId());
         }
@@ -113,6 +128,8 @@ public class SpectatorManager {
         for (UUID spectatorUuid : new HashSet<>(spectators)) {
             ServerPlayer spectator = server.getPlayerList().getPlayer(spectatorUuid);
             if (spectator != null) {
+                closeCobblemonBattleView(spectator);
+
                 spectator.sendSystemMessage(Component.translatable("cobblemon_showdown.battle_spectate.end")
                     .withStyle(ChatFormatting.GRAY));
 
@@ -216,6 +233,28 @@ public class SpectatorManager {
                 ShowdownNetwork.sendToPlayer(faintPacket, spectator);
             }
         }
+    }
+
+    // adds the player to the Cobblemon battle's spectator set and sends the packets
+    // that open the native battle GUI client-side (null ally side = spectator view)
+    private void openCobblemonBattleView(ServerPlayer player) {
+        PokemonBattle cobblemonBattle = battle.getCobblemonBattle();
+        if (cobblemonBattle == null) {
+            return;
+        }
+
+        cobblemonBattle.getSpectators().add(player.getUUID());
+        CobblemonNetwork.INSTANCE.sendPacketToPlayer(player, new BattleInitializePacket(cobblemonBattle, null));
+        CobblemonNetwork.INSTANCE.sendPacketToPlayer(player, new BattleMessagePacket(cobblemonBattle.getChatLog()));
+    }
+
+    // detaches the player from the Cobblemon battle and tells their client to close the battle GUI
+    private void closeCobblemonBattleView(ServerPlayer player) {
+        PokemonBattle cobblemonBattle = battle.getCobblemonBattle();
+        if (cobblemonBattle != null) {
+            cobblemonBattle.getSpectators().remove(player.getUUID());
+        }
+        CobblemonNetwork.INSTANCE.sendPacketToPlayer(player, new BattleEndPacket());
     }
 
     private void sendSpectatorJoinedPacket(ServerPlayer spectator) {
