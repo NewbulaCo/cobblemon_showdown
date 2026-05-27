@@ -128,7 +128,6 @@
   "command.cobblemon_showdown.challenge.item_bet.example": "Example: item_bet:minecraft:diamond,5",
   "command.cobblemon_showdown.challenge.player.cannot_self": "You cannot challenge yourself!",
   "command.cobblemon_showdown.challenge.player.out_of_range": "You must be within %s blocks of %s to challenge them!",
-  "command.cobblemon_showdown.challenge.player.out_of_range.msg": "Current distance: %s blocks",
   "command.cobblemon_showdown.challenge.player.invalid_format": "Format '%s' does not exist",
   "command.cobblemon_showdown.challenge.player.format_list": "Available formats: %s",
   "command.cobblemon_showdown.challenge.player.pending_player": "%s already has a pending challenge",

@@ -136,9 +136,6 @@ public class ChallengeCommand {
                         "command.cobblemon_showdown.challenge.player.out_of_range",
                         (int) maxDistance,
                         challenged.getName()));
-                    sendInfo(context.getSource(), Component.translatable(
-                        "command.cobblemon_showdown.challenge.player.out_of_range.msg",
-                        String.format("%.1f", distance)));
                     return 0;
                 }
             }

@@ -128,7 +128,6 @@
   "command.cobblemon_showdown.challenge.item_bet.example": "예시: item_bet:minecraft:diamond,5",
   "command.cobblemon_showdown.challenge.player.cannot_self": "자기 자신에게 배틀을 걸 수 없습니다!",
   "command.cobblemon_showdown.challenge.player.out_of_range": "배틀을 걸려면 %s블록 안에 %s이(가) 있어야합니다!",
-  "command.cobblemon_showdown.challenge.player.out_of_range.msg": "현재 거리: %s블록",
   "command.cobblemon_showdown.challenge.player.invalid_format": "배틀 형식 '%s'은(는) 존재하지 않습니다",
   "command.cobblemon_showdown.challenge.player.format_list": "사용 가능한 배틀 형식: %s",
   "command.cobblemon_showdown.challenge.player.pending_player": "%s은(는) 이미 대기 중인 배틀이 있습니다",
