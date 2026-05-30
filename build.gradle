@@ -103,6 +103,7 @@ repositories {
     maven { url = "https://thedarkcolour.github.io/KotlinForForge/" }            // kotlin for forge (cobblemon)
     maven { url = "https://maven.impactdev.net/repository/development/" }        // cobblemon
     maven { url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" }  // geckolib
+    maven { url = "https://api.modrinth.com/maven" }                             // simpletms (optional)
 }
 
 dependencies {
@@ -114,6 +115,11 @@ dependencies {
     // compileOnly only: cobblemon's mixins use SRG names that clash with parchment in dev.
     // it is present at runtime in production.
     compileOnly fg.deobf("com.cobblemon:forge:${cobblemon_version}")
+
+    // optional integration: SimpleTMs 1.1.2 (Forge). Pinned by Modrinth version-id rather
+    // than version number because Modrinth's Maven proxies the Fabric jar for the shared
+    // "1.1.2" version coord; l3rUJL9l is the Forge file's unique id.
+    compileOnly fg.deobf("maven.modrinth:simpletms-tms-and-trs-for-cobblemon:l3rUJL9l")
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }

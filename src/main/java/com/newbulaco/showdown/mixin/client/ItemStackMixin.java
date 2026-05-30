@@ -1,6 +1,5 @@
 package com.newbulaco.showdown.mixin.client;
 
-import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.moves.categories.DamageCategory;
 import com.cobblemon.mod.common.client.CobblemonClient;
 import com.cobblemon.mod.common.api.moves.MoveTemplate;
@@ -8,6 +7,7 @@ import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.client.storage.ClientParty;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.newbulaco.showdown.compat.PartyLearnerCheck;
 import com.newbulaco.showdown.util.ComponentUtil;
 import net.minecraft.ChatFormatting;
 import com.newbulaco.showdown.client.ShowdownKeybinds;
@@ -154,14 +154,9 @@ public class ItemStackMixin {
             for (Pokemon pokemon : party.getSlots()) {
                 if (pokemon == null) continue;
 
-                boolean knows = cobblemonShowdown$pokemonKnowsMove(pokemon, move);
-
-                if (knows) {
+                if (PartyLearnerCheck.knowsMove(pokemon, move)) {
                     alreadyKnows.add(pokemon);
-                    continue;
-                }
-
-                if (cobblemonShowdown$canPokemonLearnMove(pokemon, move)) {
+                } else if (PartyLearnerCheck.canLearnMove(pokemon, move)) {
                     canLearn.add(pokemon);
                 } else {
                     cannotLearn.add(pokemon);
@@ -216,62 +211,6 @@ public class ItemStackMixin {
         } catch (Exception e) {
             // cobblemon storage may not be available yet
         }
-    }
-
-    @Unique
-    private boolean cobblemonShowdown$pokemonKnowsMove(Pokemon pokemon, MoveTemplate move) {
-        for (var moveSlot : pokemon.getMoveSet()) {
-            if (moveSlot != null && moveSlot.getTemplate().equals(move)) {
-                return true;
-            }
-        }
-        for (var benchedMove : pokemon.getBenchedMoves()) {
-            if (benchedMove.getMoveTemplate().equals(move)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Unique
-    private boolean cobblemonShowdown$canPokemonLearnMove(Pokemon pokemon, MoveTemplate move) {
-        var form = pokemon.getForm();
-        var moves = form.getMoves();
-        String moveName = move.getName();
-
-        for (MoveTemplate tm : moves.getTmMoves()) {
-            if (tm.getName().equalsIgnoreCase(moveName)) return true;
-        }
-
-        for (MoveTemplate tutor : moves.getTutorMoves()) {
-            if (tutor.getName().equalsIgnoreCase(moveName)) return true;
-        }
-
-        // check egg moves including pre-evolutions (matching SimpleTMs behavior)
-        for (MoveTemplate egg : moves.getEggMoves()) {
-            if (egg.getName().equalsIgnoreCase(moveName)) return true;
-        }
-        // walk up to 4 pre-evolution generations for egg moves
-        var preEvolution = form.getPreEvolution();
-        for (int i = 0; i < 4 && preEvolution != null && preEvolution.getSpecies() != null; i++) {
-            var preForm = preEvolution.getForm();
-            for (MoveTemplate egg : preForm.getMoves().getEggMoves()) {
-                if (egg.getName().equalsIgnoreCase(moveName)) return true;
-            }
-            preEvolution = preForm.getPreEvolution();
-        }
-
-        int maxLevel = 100;
-        try {
-            maxLevel = Cobblemon.config.getMaxPokemonLevel();
-        } catch (Exception e) {
-            // fallback to 100
-        }
-        for (MoveTemplate levelUp : moves.getLevelUpMovesUpTo(maxLevel)) {
-            if (levelUp.getName().equalsIgnoreCase(moveName)) return true;
-        }
-
-        return false;
     }
 
     @Unique

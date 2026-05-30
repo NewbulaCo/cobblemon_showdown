@@ -33,6 +33,7 @@ import com.newbulaco.showdown.api.content.AbilityModification;
 import com.newbulaco.showdown.api.content.CustomAbility;
 import com.newbulaco.showdown.api.content.CustomMove;
 import com.newbulaco.showdown.api.content.MoveModification;
+import com.newbulaco.showdown.compat.PartyLearnerCheck;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -594,26 +595,9 @@ public class DtCommand {
         for (Pokemon pokemon : party) {
             if (pokemon == null) continue;
 
-            boolean knows = false;
-            for (var moveSlot : pokemon.getMoveSet()) {
-                if (moveSlot != null && moveSlot.getTemplate().equals(move)) {
-                    knows = true;
-                    break;
-                }
-            }
-            for (var benchedMove : pokemon.getBenchedMoves()) {
-                if (benchedMove.getMoveTemplate().equals(move)) {
-                    knows = true;
-                    break;
-                }
-            }
-
-            if (knows) {
+            if (PartyLearnerCheck.knowsMove(pokemon, move)) {
                 alreadyKnows.add(pokemon);
-                continue;
-            }
-
-            if (canPokemonLearnMove(pokemon, move)) {
+            } else if (PartyLearnerCheck.canLearnMove(pokemon, move)) {
                 canLearn.add(pokemon);
             } else {
                 cannotLearn.add(pokemon);
@@ -675,18 +659,6 @@ public class DtCommand {
             player.sendSystemMessage(Component.literal("  ").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)
                 .append(Component.translatable("tooltip.cobblemon_showdown.party_learner.nobody")));
         }
-    }
-
-    // checks TM, tutor, egg, and level-up learnsets
-    private static boolean canPokemonLearnMove(Pokemon pokemon, MoveTemplate move) {
-        var moves = pokemon.getForm().getMoves();
-
-        if (moves.getTmMoves().contains(move)) return true;
-        if (moves.getTutorMoves().contains(move)) return true;
-        if (moves.getEggMoves().contains(move)) return true;
-
-        int maxLevel = Cobblemon.config.getMaxPokemonLevel();
-        return moves.getLevelUpMovesUpTo(maxLevel).contains(move);
     }
 
     private static boolean tryShowItem(ServerPlayer player, String query) {
