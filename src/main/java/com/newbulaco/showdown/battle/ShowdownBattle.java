@@ -68,7 +68,9 @@ public class ShowdownBattle {
 
     public boolean start(@Nullable UUID leadPokemon1Uuid, @Nullable UUID leadPokemon2Uuid) {
         try {
-            BattleFormat cobblemonFormat = BattleFormat.Companion.getGEN_9_SINGLES();
+            BattleFormat cobblemonFormat = format.isDoubles()
+                    ? BattleFormat.Companion.getGEN_9_DOUBLES()
+                    : BattleFormat.Companion.getGEN_9_SINGLES();
 
             PlayerPartyStore p1Party = Cobblemon.INSTANCE.getStorage().getParty(player1);
             PlayerPartyStore p2Party = Cobblemon.INSTANCE.getStorage().getParty(player2);

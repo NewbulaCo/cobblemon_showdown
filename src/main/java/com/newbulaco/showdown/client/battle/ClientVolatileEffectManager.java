@@ -106,6 +106,29 @@ public class ClientVolatileEffectManager {
         return opponentEffects;
     }
 
+    // per-pokemon accessor scoped to the current battle, for doubles renderers that draw
+    // each active slot separately. the side-wide getters above aggregate, which works for
+    // singles (one slot) but mixes both slots in doubles.
+    public Set<String> getEffectsByPokemon(UUID pokemonId) {
+        if (currentBattleId == null) return Collections.emptySet();
+        return getEffects(currentBattleId, pokemonId);
+    }
+
+    public List<UUID> getTrackedPokemonOnSide(boolean ally) {
+        if (currentBattleId == null) return Collections.emptyList();
+
+        Map<UUID, Boolean> sides = pokemonSides.get(currentBattleId);
+        if (sides == null) return Collections.emptyList();
+
+        List<UUID> result = new ArrayList<>();
+        for (Map.Entry<UUID, Boolean> entry : sides.entrySet()) {
+            if (entry.getValue() == ally) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
+    }
+
     public Set<String> getEffects(UUID battleId, UUID pokemonId) {
         Map<UUID, Set<String>> pokemonEffects = battleEffects.get(battleId);
         if (pokemonEffects == null) return Collections.emptySet();

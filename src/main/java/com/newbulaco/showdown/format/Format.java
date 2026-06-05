@@ -10,6 +10,9 @@ public class Format {
     @SerializedName("party_size")
     private int partySize = 3;
 
+    @SerializedName("battle_type")
+    private String battleType = "singles";
+
     private String description = "";
 
     @SerializedName("best_of")
@@ -55,6 +58,30 @@ public class Format {
 
     public void setPartySize(int partySize) {
         this.partySize = Math.max(1, Math.min(6, partySize));
+    }
+
+    public String getBattleType() {
+        return battleType != null ? battleType : "singles";
+    }
+
+    public void setBattleType(String battleType) {
+        if (battleType == null) {
+            this.battleType = "singles";
+            return;
+        }
+        String normalized = battleType.toLowerCase();
+        if (!normalized.equals("singles") && !normalized.equals("doubles")) {
+            throw new IllegalArgumentException("battle_type must be \"singles\" or \"doubles\"");
+        }
+        this.battleType = normalized;
+    }
+
+    public boolean isDoubles() {
+        return "doubles".equalsIgnoreCase(battleType);
+    }
+
+    public int getSlotsPerActor() {
+        return isDoubles() ? 2 : 1;
     }
 
     public String getDescription() {

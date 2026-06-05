@@ -551,14 +551,17 @@ public class BattleOverlayRenderer {
 
             ClientBattleSide opponentSide = (ourSide == battle.getSide1()) ? battle.getSide2() : battle.getSide1();
 
-            ActiveClientBattlePokemon opponentActivePokemon = null;
+            // picks the first opponent slot that actually has a pokemon. in singles this is the
+            // only opponent. in doubles it matches the auto-target picker (first valid foe), so
+            // the effectiveness indicator agrees with where the move will land.
+            ClientBattlePokemon opponentBattlePokemon = null;
             for (ActiveClientBattlePokemon active : opponentSide.getActiveClientBattlePokemon()) {
-                opponentActivePokemon = active;
-                break;
+                ClientBattlePokemon candidate = active.getBattlePokemon();
+                if (candidate != null) {
+                    opponentBattlePokemon = candidate;
+                    break;
+                }
             }
-            if (opponentActivePokemon == null) return;
-
-            ClientBattlePokemon opponentBattlePokemon = opponentActivePokemon.getBattlePokemon();
             if (opponentBattlePokemon == null) return;
 
             // use getTypes() to get all types reliably for dual-type pokemon

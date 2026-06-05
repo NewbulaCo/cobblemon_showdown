@@ -24,7 +24,7 @@ public abstract class AbilityMixin {
         // ability modifications (reworked vanilla abilities) take priority
         AbilityModification mod = ShowdownAPI.getAbilityModification(abilityName);
         if (mod != null && mod.getDescription() != null) {
-            // return directly, not as a translation key — it's already the final text
+            // description is already the final text, not a translation key
             cir.setReturnValue(mod.getDescription());
             return;
         }

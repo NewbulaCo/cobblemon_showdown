@@ -85,6 +85,7 @@
   "cobblemon_showdown.showdown_battle.setup.already_inB": "%s is already in a battle!",
   "cobblemon_showdown.showdown_battle.setup.not_met_requirement": "Your party doesn't meet format requirements:",
   "cobblemon_showdown.showdown_battle.setup.canceled": "Battle cancelled - %s's party is invalid",
+  "cobblemon_showdown.showdown_battle.setup.format_misconfigured": "Format '%s' is misconfigured (party size is smaller than active slots). Edit the format JSON to fix.",
   "cobblemon_showdown.showdown_battle.setup.message": "Starting Best-of-%s series!",
   "cobblemon_showdown.showdown_battle.selection": "Select %s Pokemon for the battle",
   "cobblemon_showdown.showdown_battle.series.not_met_requirement": "Your party doesn't meet format requirements!",

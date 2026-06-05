@@ -8,6 +8,8 @@
   "client": [
     "client.PCGUIMixin",
     "client.BattleSwitchPokemonSelectionMixin",
+    "client.BattleMoveSelectionMixin",
+    "client.BattleGUIMixin",
     "client.ItemStackMixin",
     "client.InfoWidgetMixin",
     "client.MovesWidgetMixin"
