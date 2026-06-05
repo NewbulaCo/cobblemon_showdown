@@ -72,6 +72,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // from ").append(ability.getModId()).append("\n");
             sb.append("    ").append(ability.getId()).append(": {\n");
             sb.append("        num: ").append(ability.getNum()).append(",\n");
             sb.append("        name: \"").append(escapeJs(ability.getDisplayName())).append("\",\n");
@@ -86,6 +87,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // modification from ").append(mod.getModId()).append("\n");
             sb.append("    ").append(mod.getAbilityId()).append(": {\n");
             sb.append("        inherit: true,\n");
 
@@ -129,6 +131,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // from ").append(move.getModId()).append("\n");
             sb.append("    ").append(move.getId()).append(": {\n");
             sb.append("        num: ").append(move.getNum()).append(",\n");
             sb.append("        name: \"").append(escapeJs(move.getDisplayName())).append("\",\n");
@@ -162,6 +165,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // modification from ").append(mod.getModId()).append("\n");
             sb.append("    ").append(mod.getMoveId()).append(": {\n");
             sb.append("        inherit: true,\n");
 
@@ -208,6 +212,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // volatile from ").append(effect.getModId()).append("\n");
             sb.append("    ").append(effect.getId()).append(": {\n");
             sb.append("        name: \"").append(escapeJs(effect.getDisplayName())).append("\",\n");
             sb.append("        ").append(effect.getShowdownJs()).append("\n");
@@ -220,6 +225,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // side condition from ").append(condition.getModId()).append("\n");
             sb.append("    ").append(condition.getId()).append(": {\n");
             sb.append("        name: \"").append(escapeJs(condition.getDisplayName())).append("\",\n");
             sb.append("        ").append(condition.getShowdownJs()).append("\n");
@@ -232,6 +238,7 @@ public final class ShowdownScriptBuilder {
             if (!first) sb.append(",\n");
             first = false;
 
+            sb.append("    // field condition from ").append(fieldCondition.getModId()).append("\n");
             sb.append("    ").append(fieldCondition.getId()).append(": {\n");
             sb.append("        name: \"").append(escapeJs(fieldCondition.getDisplayName())).append("\",\n");
             sb.append("        ").append(fieldCondition.getShowdownJs()).append("\n");

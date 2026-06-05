@@ -2,18 +2,37 @@ package com.newbulaco.showdown.api;
 
 import com.newbulaco.showdown.api.content.*;
 import com.newbulaco.showdown.api.registry.ContentRegistry;
+import com.newbulaco.showdown.api.registry.RegistrationResult;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
 
-// register content during mod initialization (FMLCommonSetupEvent)
+// public registration surface for the Cobblemon Showdown content API.
+//
+// lifecycle: register from FMLCommonSetupEvent. content can still be registered later
+// and will appear in /dt and battle UI, but its showdownJs cannot reach the Showdown
+// engine after the first battle's openConnection runs (see ContentRegistry.areScriptsBuilt).
+//
+// id namespace: ids are global across consumers and lowercase-normalized. register()
+// will overwrite a colliding entry and log a warning; tryRegister() returns REJECTED
+// instead. nums (>= 9000 by convention) should also be unique per consumer; the
+// registry logs a warning on collision.
+//
+// showdownJs namespace: every consumer's showdownJs is concatenated into a single
+// exports.Moves / exports.Abilities / exports.Conditions object. malformed JS from one
+// consumer can corrupt entries from another; the registry runs a brace-balance check
+// at register time and logs a warning if it looks off.
 public final class ShowdownAPI {
 
     private ShowdownAPI() {}
 
-    public static void registerAbility(CustomAbility ability) {
-        ContentRegistry.registerAbility(ability);
+    public static RegistrationResult registerAbility(CustomAbility ability) {
+        return ContentRegistry.registerAbility(ability);
+    }
+
+    public static RegistrationResult tryRegisterAbility(CustomAbility ability) {
+        return ContentRegistry.tryRegisterAbility(ability);
     }
 
     @Nullable
@@ -25,8 +44,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllAbilities();
     }
 
-    public static void registerMove(CustomMove move) {
-        ContentRegistry.registerMove(move);
+    public static RegistrationResult registerMove(CustomMove move) {
+        return ContentRegistry.registerMove(move);
+    }
+
+    public static RegistrationResult tryRegisterMove(CustomMove move) {
+        return ContentRegistry.tryRegisterMove(move);
     }
 
     @Nullable
@@ -38,8 +61,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllMoves();
     }
 
-    public static void registerMoveModification(MoveModification mod) {
-        ContentRegistry.registerMoveModification(mod);
+    public static RegistrationResult registerMoveModification(MoveModification mod) {
+        return ContentRegistry.registerMoveModification(mod);
+    }
+
+    public static RegistrationResult tryRegisterMoveModification(MoveModification mod) {
+        return ContentRegistry.tryRegisterMoveModification(mod);
     }
 
     @Nullable
@@ -51,8 +78,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllMoveModifications();
     }
 
-    public static void registerAbilityModification(AbilityModification mod) {
-        ContentRegistry.registerAbilityModification(mod);
+    public static RegistrationResult registerAbilityModification(AbilityModification mod) {
+        return ContentRegistry.registerAbilityModification(mod);
+    }
+
+    public static RegistrationResult tryRegisterAbilityModification(AbilityModification mod) {
+        return ContentRegistry.tryRegisterAbilityModification(mod);
     }
 
     @Nullable
@@ -73,8 +104,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllHelperJs();
     }
 
-    public static void registerFieldCondition(CustomFieldCondition condition) {
-        ContentRegistry.registerFieldCondition(condition);
+    public static RegistrationResult registerFieldCondition(CustomFieldCondition condition) {
+        return ContentRegistry.registerFieldCondition(condition);
+    }
+
+    public static RegistrationResult tryRegisterFieldCondition(CustomFieldCondition condition) {
+        return ContentRegistry.tryRegisterFieldCondition(condition);
     }
 
     @Nullable
@@ -86,8 +121,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllFieldConditions();
     }
 
-    public static void registerVolatileEffect(CustomVolatileEffect effect) {
-        ContentRegistry.registerVolatileEffect(effect);
+    public static RegistrationResult registerVolatileEffect(CustomVolatileEffect effect) {
+        return ContentRegistry.registerVolatileEffect(effect);
+    }
+
+    public static RegistrationResult tryRegisterVolatileEffect(CustomVolatileEffect effect) {
+        return ContentRegistry.tryRegisterVolatileEffect(effect);
     }
 
     @Nullable
@@ -99,8 +138,12 @@ public final class ShowdownAPI {
         return ContentRegistry.getAllVolatileEffects();
     }
 
-    public static void registerSideCondition(CustomSideCondition condition) {
-        ContentRegistry.registerSideCondition(condition);
+    public static RegistrationResult registerSideCondition(CustomSideCondition condition) {
+        return ContentRegistry.registerSideCondition(condition);
+    }
+
+    public static RegistrationResult tryRegisterSideCondition(CustomSideCondition condition) {
+        return ContentRegistry.tryRegisterSideCondition(condition);
     }
 
     @Nullable
@@ -130,6 +173,11 @@ public final class ShowdownAPI {
 
     public static boolean hasShowdownJs() {
         return ContentRegistry.hasShowdownJs();
+    }
+
+    // true once Showdown has started; after this point new showdownJs cannot reach the engine.
+    public static boolean isScriptsBuilt() {
+        return ContentRegistry.areScriptsBuilt();
     }
 
     public static String getAbilityDisplayName(String id) {

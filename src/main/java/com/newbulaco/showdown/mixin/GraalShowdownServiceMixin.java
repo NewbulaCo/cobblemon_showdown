@@ -32,6 +32,10 @@ public class GraalShowdownServiceMixin {
         } catch (Exception e) {
             LOGGER.error("[CobblemonShowdown] Failed to inject Showdown scripts: {}", e.getMessage());
             LOGGER.debug("[CobblemonShowdown] Injection error details:", e);
+        } finally {
+            // engine is about to start regardless of injection outcome; freeze the registry
+            // so any further showdownJs registration is flagged loudly.
+            ContentRegistry.markScriptsBuilt();
         }
     }
 
