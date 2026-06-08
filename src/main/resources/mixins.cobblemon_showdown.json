@@ -10,6 +10,7 @@
     "client.BattleSwitchPokemonSelectionMixin",
     "client.BattleMoveSelectionMixin",
     "client.BattleGUIMixin",
+    "client.BattleOverlayMixin",
     "client.ItemStackMixin",
     "client.InfoWidgetMixin",
     "client.MovesWidgetMixin"
