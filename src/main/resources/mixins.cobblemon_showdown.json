@@ -21,7 +21,8 @@
     "AbilityMixin",
     "SideStartInstructionMixin",
     "FieldStartInstructionMixin",
-    "FieldEndInstructionMixin"
+    "FieldEndInstructionMixin",
+    "MoveInstructionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

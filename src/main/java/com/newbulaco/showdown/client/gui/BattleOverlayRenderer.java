@@ -72,6 +72,8 @@ public class BattleOverlayRenderer {
     private static final int ALLY_TILE_Y = 10;
     private static final int ALLY_TILE_WIDTH = 131;
     private static final int ALLY_TILE_HEIGHT = 40;
+    // VERTICAL_SPACING from cobblemon BattleOverlay; gap between stacked slot tiles in doubles
+    private static final int ALLY_VERTICAL_SPACING = 40;
 
     private static Method getCurrentActionSelectionMethod = null;
     private static boolean reflectionFailed = false;
@@ -248,45 +250,57 @@ public class BattleOverlayRenderer {
 
     /**
      * renders below the party status indicators.
-     * order: volatile effects -> side conditions.
+     * order: per-slot stat stages + volatile effects -> side conditions.
+     * in doubles each active slot draws its own block under its own HP tile.
      */
     private static void renderStatChanges(GuiGraphics graphics, ClientBattle battle, Minecraft mc,
                                            int allyStartY, int opponentStartY) {
         int screenWidth = mc.getWindow().getGuiScaledWidth();
 
         try {
-            var allyStats = ClientStatChangeManager.getInstance().getAllyStatStages();
-            var allyEffects = ClientVolatileEffectManager.getInstance().getAllyEffects();
+            int allyBottom = renderSideSlotStatus(graphics, mc, battle.getSide1(), ALLY_TILE_X, allyStartY, true);
+
             var allyConditions = ClientSideConditionManager.getInstance().getAllyConditions();
-
-            int allyX = ALLY_TILE_X;
-            int allyY = allyStartY;
-            int maxWidth = ALLY_TILE_WIDTH;
-
-            int allyStatusHeight = renderBattleStatus(graphics, mc, allyStats, allyEffects, allyX, allyY, maxWidth, true);
-
             if (!allyConditions.isEmpty()) {
-                int sideCondY = allyY + Math.max(allyStatusHeight, 12) + 2;
-                renderSideConditionsForCombatant(graphics, mc, allyConditions, allyX, sideCondY, maxWidth);
+                renderSideConditionsForCombatant(graphics, mc, allyConditions, ALLY_TILE_X, allyBottom + 2, ALLY_TILE_WIDTH);
             }
 
-            var opponentStats = ClientStatChangeManager.getInstance().getOpponentStatStages();
-            var opponentEffects = ClientVolatileEffectManager.getInstance().getOpponentEffects();
-            var opponentConditions = ClientSideConditionManager.getInstance().getOpponentConditions();
-
             int opponentX = screenWidth - ALLY_TILE_X - ALLY_TILE_WIDTH;
-            int opponentY = opponentStartY;
+            int opponentBottom = renderSideSlotStatus(graphics, mc, battle.getSide2(), opponentX, opponentStartY, false);
 
-            int opponentStatusHeight = renderBattleStatus(graphics, mc, opponentStats, opponentEffects, opponentX, opponentY, maxWidth, false);
-
+            var opponentConditions = ClientSideConditionManager.getInstance().getOpponentConditions();
             if (!opponentConditions.isEmpty()) {
-                int sideCondY = opponentY + Math.max(opponentStatusHeight, 12) + 2;
-                renderSideConditionsForCombatant(graphics, mc, opponentConditions, opponentX, sideCondY, maxWidth);
+                renderSideConditionsForCombatant(graphics, mc, opponentConditions, opponentX, opponentBottom + 2, ALLY_TILE_WIDTH);
             }
 
         } catch (Exception e) {
             // silently ignore
         }
+    }
+
+    // walks a side's active slots and draws each slot's stats + effects directly under its
+    // BattleOverlay tile (offset by rank * VERTICAL_SPACING). returns the lowest y reached so
+    // side conditions can anchor below. in singles only rank 0 has data; the call is a no-op
+    // for empty slots, so the visual matches the old single-block layout.
+    private static int renderSideSlotStatus(GuiGraphics graphics, Minecraft mc, ClientBattleSide side,
+                                             int x, int startY, boolean isAlly) {
+        if (side == null) return startY;
+        int rank = 0;
+        int bottom = startY;
+        for (ActiveClientBattlePokemon active : side.getActiveClientBattlePokemon()) {
+            ClientBattlePokemon bp = active.getBattlePokemon();
+            if (bp != null) {
+                UUID id = bp.getUuid();
+                Map<String, Integer> stats = ClientStatChangeManager.getInstance().getStatStagesByPokemon(id);
+                java.util.Set<String> effects = ClientVolatileEffectManager.getInstance().getEffectsByPokemon(id);
+                int slotY = startY + rank * ALLY_VERTICAL_SPACING;
+                int h = renderBattleStatus(graphics, mc, stats, effects, x, slotY, ALLY_TILE_WIDTH, isAlly);
+                int slotBottom = slotY + Math.max(h, 0);
+                if (slotBottom > bottom) bottom = slotBottom;
+            }
+            rank++;
+        }
+        return bottom;
     }
 
     private static final String[] STAT_ORDER = {"atk", "def", "spa", "spd", "spe", "accuracy", "evasion"};
@@ -528,6 +542,8 @@ public class BattleOverlayRenderer {
     private static void renderMoveEffectiveness(GuiGraphics graphics, ClientBattle battle, Minecraft mc) {
         try {
             if (mc.screen == null || !isInMoveSelection(mc.screen)) return;
+            // doubles defers effectiveness to the per-target tiles in BattleTargetSelection
+            if (battle.getBattleFormat().getBattleType().getSlotsPerActor() > 1) return;
 
             var pendingRequests = battle.getPendingActionRequests();
             if (pendingRequests == null || pendingRequests.isEmpty()) return;

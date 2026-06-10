@@ -5,6 +5,10 @@
  */
 package com.newbulaco.showdown.client.gui.battle;
 
+import com.cobblemon.mod.common.api.moves.MoveTemplate;
+import com.cobblemon.mod.common.api.moves.Moves;
+import com.cobblemon.mod.common.api.moves.categories.DamageCategories;
+import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.battles.InBattleMove;
 import com.cobblemon.mod.common.battles.MoveActionResponse;
 import com.cobblemon.mod.common.battles.MoveTarget;
@@ -17,6 +21,7 @@ import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleActionSelectio
 import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleBackButton;
 import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleMoveSelection;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.newbulaco.showdown.client.battle.TypeEffectiveness;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -183,6 +188,33 @@ public class BattleTargetSelection extends BattleActionSelection {
         return (a << 24) | (rgb & 0x00FFFFFF);
     }
 
+    // null when no indicator should be drawn (neutral, status move on a non-immune target,
+    // or chart lookup failed). matches BattleOverlayRenderer.renderMoveEffectiveness gating
+    // so the singles and doubles paths agree on what counts as worth flagging.
+    private TypeEffectiveness.EffectivenessCategory effectivenessAgainst(ClientBattlePokemon target) {
+        var form = target.getSpecies().getStandardForm();
+        String primary = null;
+        String secondary = null;
+        int idx = 0;
+        for (ElementalType t : form.getTypes()) {
+            if (idx == 0) primary = t.getName();
+            else if (idx == 1) { secondary = t.getName(); break; }
+            idx++;
+        }
+        if (primary == null) return null;
+
+        MoveTemplate template = Moves.INSTANCE.getByNameOrDummy(move.getId());
+        String moveType = template.getElementalType().getName();
+        double eff = TypeEffectiveness.getEffectiveness(moveType, primary, secondary);
+
+        if (eff == 1.0) return null;
+        boolean isStatus = template.getDamageCategory() == DamageCategories.INSTANCE.getSTATUS();
+        if (isStatus && eff > 0) return null;
+
+        TypeEffectiveness.EffectivenessCategory cat = TypeEffectiveness.EffectivenessCategory.fromMultiplier(eff);
+        return cat == TypeEffectiveness.EffectivenessCategory.NEUTRAL ? null : cat;
+    }
+
     private static void drawTinted(GuiGraphics context, ResourceLocation tex,
                                    float x, float y, int width, int height,
                                    int uOffset, int vOffset, int texWidth, int texHeight,
@@ -308,6 +340,16 @@ public class BattleTargetSelection extends BattleActionSelection {
 
             // lower role bar (team hue)
             drawTinted(context, ROLE_LOWER, x + 4, y + 29, 82, 3, 0, 0, 82, 3, r, g, b, selOpacity);
+
+            TypeEffectiveness.EffectivenessCategory cat = effectivenessAgainst(bp);
+            if (cat != null) {
+                Font f = Minecraft.getInstance().font;
+                Component label = cat.translatedText;
+                int labelW = f.width(label);
+                context.drawString(f, label,
+                        (int) x + TARGET_WIDTH - labelW - 4, (int) y + 4,
+                        withAlpha(cat.color & 0x00FFFFFF, selOpacity), true);
+            }
 
             // hover arrow with sine throbber
             if (selectable() && hovered) {
