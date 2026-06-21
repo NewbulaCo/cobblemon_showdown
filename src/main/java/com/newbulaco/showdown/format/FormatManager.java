@@ -282,9 +282,20 @@ public class FormatManager {
 
     private void watchFiles() {
         while (true) {
+            WatchKey key;
             try {
-                WatchKey key = watchService.take();
+                key = watchService.take();
+            } catch (ClosedWatchServiceException e) {
+                // shutdown closed the service while it was blocked in take(); exit cleanly
+                // to prevent log spamming when the loop would otherwise spin on a closed service.
+                LOGGER.info("Format file watcher stopped");
+                return;
+            } catch (InterruptedException e) {
+                LOGGER.info("Format file watcher stopped");
+                return;
+            }
 
+            try {
                 for (WatchEvent<?> event : key.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
 
@@ -320,9 +331,6 @@ public class FormatManager {
                 }
 
                 key.reset();
-            } catch (InterruptedException e) {
-                LOGGER.info("Format file watcher stopped");
-                break;
             } catch (Exception e) {
                 LOGGER.error("Error in file watcher", e);
             }
@@ -330,15 +338,17 @@ public class FormatManager {
     }
 
     public void shutdown() {
-        if (watchThread != null) {
-            watchThread.interrupt();
-        }
+        // close first so the watcher's blocking take() throws ClosedWatchServiceException and exits.
+        // interrupt is a fallback in case close() is delayed.
         if (watchService != null) {
             try {
                 watchService.close();
             } catch (IOException e) {
                 LOGGER.error("Failed to close watch service", e);
             }
+        }
+        if (watchThread != null) {
+            watchThread.interrupt();
         }
     }
 }
