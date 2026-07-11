@@ -350,5 +350,6 @@
   "tooltip.cobblemon_showdown.party_learner.can_learn": "Can learn: %s",
   "tooltip.cobblemon_showdown.party_learner.already_knows": "Already knows: %s",
   "tooltip.cobblemon_showdown.party_learner.cannot_learn": "Cannot learn: %s",
-  "tooltip.cobblemon_showdown.party_learner.nobody": "No Pokemon in party"
+  "tooltip.cobblemon_showdown.party_learner.nobody": "No Pokemon in party",
+  "tooltip.cobblemon_showdown.party_learner.loading": "Loading party learners..."
 }
