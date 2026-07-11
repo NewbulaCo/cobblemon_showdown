@@ -85,6 +85,33 @@ public class ClientStatChangeManager {
         return Collections.emptyMap();
     }
 
+    // per-pokemon accessor for doubles, where each active slot has its own stages.
+    // the singles getters above pick first-on-side, which is fine when there's only one.
+    public Map<String, Integer> getStatStagesByPokemon(UUID pokemonId) {
+        if (currentBattleId == null) return Collections.emptyMap();
+
+        Map<UUID, Map<String, Integer>> pokemonStats = battleStats.get(currentBattleId);
+        if (pokemonStats == null) return Collections.emptyMap();
+
+        Map<String, Integer> stats = pokemonStats.get(pokemonId);
+        return stats != null ? new HashMap<>(stats) : Collections.emptyMap();
+    }
+
+    public List<UUID> getTrackedPokemonOnSide(boolean ally) {
+        if (currentBattleId == null) return Collections.emptyList();
+
+        Map<UUID, Boolean> sides = pokemonSides.get(currentBattleId);
+        if (sides == null) return Collections.emptyList();
+
+        List<UUID> result = new ArrayList<>();
+        for (Map.Entry<UUID, Boolean> entry : sides.entrySet()) {
+            if (entry.getValue() == ally) {
+                result.add(entry.getKey());
+            }
+        }
+        return result;
+    }
+
     public void clearBattle(UUID battleId) {
         battleStats.remove(battleId);
         pokemonSides.remove(battleId);

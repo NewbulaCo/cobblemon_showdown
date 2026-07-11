@@ -5,6 +5,8 @@ import com.newbulaco.showdown.network.packets.BattleClearPacket;
 import com.newbulaco.showdown.network.packets.BattleStatePacket;
 import com.newbulaco.showdown.network.packets.SeriesStatePacket;
 import com.newbulaco.showdown.network.packets.FieldStatusPacket;
+import com.newbulaco.showdown.network.packets.PartyLearnersRequestPacket;
+import com.newbulaco.showdown.network.packets.PartyLearnersResponsePacket;
 import com.newbulaco.showdown.network.packets.PartyStatusPacket;
 import com.newbulaco.showdown.network.packets.SideConditionPacket;
 import com.newbulaco.showdown.network.packets.SpectatorStatePacket;
@@ -113,6 +115,24 @@ public class ShowdownNetwork {
                 PartyStatusPacket::encode,
                 PartyStatusPacket::decode,
                 PartyStatusPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                PartyLearnersRequestPacket.class,
+                PartyLearnersRequestPacket::encode,
+                PartyLearnersRequestPacket::decode,
+                PartyLearnersRequestPacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER)
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                PartyLearnersResponsePacket.class,
+                PartyLearnersResponsePacket::encode,
+                PartyLearnersResponsePacket::decode,
+                PartyLearnersResponsePacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
 

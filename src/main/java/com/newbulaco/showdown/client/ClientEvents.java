@@ -21,5 +21,6 @@ public class ClientEvents {
         ClientStatChangeManager.getInstance().clearAll();
         ClientSideConditionManager.getInstance().clearAll();
         ClientPartyStatusManager.getInstance().clearAll();
+        PartyLearnersCache.getInstance().clear();
     }
 }

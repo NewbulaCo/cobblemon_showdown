@@ -351,11 +351,7 @@ public class PCSortManager {
         }
     }
 
-    /**
-     * uses cycle sort algorithm to properly handle swaps.
-     * when we move pokemon A to slot B, if slot B has pokemon C, they swap —
-     * we need to track these swaps to generate correct move operations.
-     */
+    // cycle sort: track swaps so moving A onto an occupied slot B emits the correct ops.
     private void executeMoves(List<PokemonSlot> sortedSlots, int targetBox) {
         if (sortedSlots.isEmpty()) return;
 

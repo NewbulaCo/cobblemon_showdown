@@ -349,5 +349,6 @@
   "tooltip.cobblemon_showdown.party_learner.can_learn": "배울 수 있음: %s",
   "tooltip.cobblemon_showdown.party_learner.already_knows": "이미 알고 있음: %s",
   "tooltip.cobblemon_showdown.party_learner.cannot_learn": "배울 수 없음: %s",
-  "tooltip.cobblemon_showdown.party_learner.nobody": "파티에 포켓몬 없음"
+  "tooltip.cobblemon_showdown.party_learner.nobody": "파티에 포켓몬 없음",
+  "tooltip.cobblemon_showdown.party_learner.loading": "파티 학습자 로드 중..."
 }

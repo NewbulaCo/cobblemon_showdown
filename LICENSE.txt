@@ -19,3 +19,24 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Third-party notices
+
+Portions of this project are derived from Cobblemon
+(https://gitlab.com/cobblemon/cobblemon), Copyright (C) 2023 Cobblemon
+Contributors, licensed under the Mozilla Public License, v. 2.0
+(https://mozilla.org/MPL/2.0/). These portions remain under the MPL and
+their file headers identify them.
+
+Derived sources:
+  - src/main/java/com/newbulaco/showdown/client/gui/battle/BattleTargetSelection.java
+  - src/main/java/com/newbulaco/showdown/client/gui/battle/MultiTargetUtil.java
+
+Derived assets (under MPL 2.0):
+  - assets/cobblemon_showdown/textures/gui/battle/target_select.png
+  - assets/cobblemon_showdown/textures/gui/battle/target_select_disabled.png
+  - assets/cobblemon_showdown/textures/gui/battle/target_select_role.png
+  - assets/cobblemon_showdown/textures/gui/battle/selection_underlay.png
+  - assets/cobblemon_showdown/textures/gui/battle/arrow_pointer_{up,down,left,right}.png

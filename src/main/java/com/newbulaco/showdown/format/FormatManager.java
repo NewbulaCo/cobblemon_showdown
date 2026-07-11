@@ -174,6 +174,26 @@ public class FormatManager {
 
         saveFormat("3v3_singles", format3v3);
         LOGGER.info("Created default format: 3v3 Singles");
+
+        Format format4v4Doubles = new Format("4v4 Smogon Doubles");
+        format4v4Doubles.setPartySize(4);
+        format4v4Doubles.setBattleType("doubles");
+        format4v4Doubles.setDescription("Standard Smogon Doubles OU format with 4 Pokemon (Best of 1). Two active per side. Level scaled to 50.");
+        format4v4Doubles.setBestOf(1);
+        format4v4Doubles.setSetLevel(50);
+        format4v4Doubles.setBattleTimer(true);
+        format4v4Doubles.setTeamPreview(true);
+        format4v4Doubles.setSpeciesClause(true);
+
+        Format.FormatBans bans4v4Doubles = new Format.FormatBans();
+        bans4v4Doubles.setPokemon(new ArrayList<>(bannedPokemon));
+        bans4v4Doubles.setMoves(new ArrayList<>(bannedMoves));
+        bans4v4Doubles.setAbilities(new ArrayList<>(bannedAbilities));
+        bans4v4Doubles.setItems(new ArrayList<>(bannedItems));
+        format4v4Doubles.setBans(bans4v4Doubles);
+
+        saveFormat("4v4_smogon_doubles", format4v4Doubles);
+        LOGGER.info("Created default format: 4v4 Smogon Doubles");
     }
 
     private void loadAllFormats() {

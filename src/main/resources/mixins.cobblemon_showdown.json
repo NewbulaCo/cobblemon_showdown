@@ -8,6 +8,9 @@
   "client": [
     "client.PCGUIMixin",
     "client.BattleSwitchPokemonSelectionMixin",
+    "client.BattleMoveSelectionMixin",
+    "client.BattleGUIMixin",
+    "client.BattleOverlayMixin",
     "client.ItemStackMixin",
     "client.InfoWidgetMixin",
     "client.MovesWidgetMixin"
@@ -18,7 +21,9 @@
     "AbilityMixin",
     "SideStartInstructionMixin",
     "FieldStartInstructionMixin",
-    "FieldEndInstructionMixin"
+    "FieldEndInstructionMixin",
+    "MoveInstructionMixin",
+    "SwitchInstructionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

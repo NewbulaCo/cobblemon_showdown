@@ -62,6 +62,14 @@ public class BattleManager {
             return false;
         }
 
+        if (format.getPartySize() < format.getSlotsPerActor()) {
+            LOGGER.warn("Format '{}' is misconfigured: party_size {} < slots-per-actor {}",
+                    format.getName(), format.getPartySize(), format.getSlotsPerActor());
+            MessageUtil.error(player1, Component.translatable(
+                    "cobblemon_showdown.showdown_battle.setup.format_misconfigured", format.getName()));
+            return false;
+        }
+
         FormatValidator validator = new FormatValidator();
 
         List<String> player1Errors = validatePlayerParty(player1, format, validator);

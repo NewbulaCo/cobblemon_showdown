@@ -7,6 +7,7 @@ import com.cobblemon.mod.common.api.moves.Moves;
 import com.cobblemon.mod.common.api.types.ElementalType;
 import com.cobblemon.mod.common.client.storage.ClientParty;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.newbulaco.showdown.client.PartyLearnersCache;
 import com.newbulaco.showdown.compat.PartyLearnerCheck;
 import com.newbulaco.showdown.util.ComponentUtil;
 import net.minecraft.ChatFormatting;
@@ -150,22 +151,40 @@ public class ItemStackMixin {
             List<Pokemon> canLearn = new ArrayList<>();
             List<Pokemon> alreadyKnows = new ArrayList<>();
             List<Pokemon> cannotLearn = new ArrayList<>();
+            boolean anyUnknown = false;
 
+            // canLearnMove has to round-trip to the server: Cobblemon's Learnset.decode only
+            // syncs level-up moves to the client, so tm/tutor/egg lists are empty here.
             for (Pokemon pokemon : party.getSlots()) {
                 if (pokemon == null) continue;
 
                 if (PartyLearnerCheck.knowsMove(pokemon, move)) {
                     alreadyKnows.add(pokemon);
-                } else if (PartyLearnerCheck.canLearnMove(pokemon, move)) {
+                    continue;
+                }
+                var cached = PartyLearnersCache.getInstance().canLearn(move.getName(), pokemon.getUuid());
+                if (cached.isEmpty()) {
+                    anyUnknown = true;
+                } else if (cached.get()) {
                     canLearn.add(pokemon);
                 } else {
                     cannotLearn.add(pokemon);
                 }
             }
 
+            if (anyUnknown) {
+                PartyLearnersCache.getInstance().requestIfMissing(move.getName());
+            }
+
             tooltip.add(Component.empty());
             tooltip.add(Component.translatable("tooltip.cobblemon_showdown.party_learner")
                     .withStyle(ChatFormatting.AQUA, ChatFormatting.UNDERLINE));
+
+            if (anyUnknown) {
+                tooltip.add(Component.literal("  ").append(Component.translatable("tooltip.cobblemon_showdown.party_learner.loading")
+                    .withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC)));
+                return;
+            }
 
             if (!canLearn.isEmpty()) {
                 MutableComponent names = Component.empty();

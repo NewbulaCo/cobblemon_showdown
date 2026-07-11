@@ -217,7 +217,7 @@ public abstract class PCGUIMixin extends Screen {
                 }
             }
 
-            // prefer setter — it calls setupStorageSlots internally
+            // setter is preferred; it calls setupStorageSlots internally
             if (cobblemonShowdown$setBoxMethod != null) {
                 cobblemonShowdown$setBoxMethod.invoke(storageWidget, box);
                 cobblemonShowdown$LOGGER.debug("[Showdown] Set box via setter to: {}", box);
@@ -450,7 +450,7 @@ public abstract class PCGUIMixin extends Screen {
             cobblemonShowdown$loggedOnce = true;
         }
 
-        // save continuously — more reliable than hooking close methods
+        // save continuously, more reliable than hooking close methods
         int currentBox = cobblemonShowdown$getCurrentBox();
         if (currentBox >= 0) {
             cobblemonShowdown$lastBox = currentBox;
@@ -487,7 +487,7 @@ public abstract class PCGUIMixin extends Screen {
             return;
         }
 
-        // held item is rendered at (guiX + 3, guiY + 98) with 16x16 size —
+        // held item is rendered at (guiX + 3, guiY + 98) with 16x16 size;
         // avoid overlapping cobblemon's own item tooltip
         int guiX = (this.width - 349) / 2;
         int guiY = (this.height - 205) / 2;

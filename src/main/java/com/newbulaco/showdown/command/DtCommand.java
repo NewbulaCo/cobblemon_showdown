@@ -1199,8 +1199,8 @@ public class DtCommand {
                     "tooltip.cobblemon_showdown.move_info.category",
                     Component.literal(move.getCategory()).withStyle(ChatFormatting.WHITE))));
 
-        String powerStr = move.getPower() > 0 ? String.valueOf(move.getPower()) : "—";
-        String accStr = move.getAccuracy() > 0 ? move.getAccuracy() + "%" : "—";
+        String powerStr = move.getPower() > 0 ? String.valueOf(move.getPower()) : "-";
+        String accStr = move.getAccuracy() > 0 ? move.getAccuracy() + "%" : "-";
         player.sendSystemMessage(Component.empty().withStyle(ChatFormatting.GRAY)
                 .append(Component.translatable(
                     "tooltip.cobblemon_showdown.move_info.power",
