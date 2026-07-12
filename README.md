@@ -6,6 +6,7 @@ A Minecraft mod for Forge 1.20.1 that adds competitive battling and QoL features
 
 - Player challenges with best-of-1/3/5 series
 - Custom battle formats with species, move, ability, and item bans
+- Double battles backport (for PVP)
 - Level scaling, species clause, battle timer, team preview
 - Battle HUD showing stat changes, volatile effects, side/field conditions, and party status
 - Party selection GUI when team exceeds format size
