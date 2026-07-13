@@ -21,17 +21,11 @@ public abstract class BattleSwitchPokemonSelectionMixin {
     @Unique
     private static final Logger cobblemonShowdown$LOGGER = LoggerFactory.getLogger("CobblemonShowdown");
     @Unique
-    private static boolean cobblemonShowdown$loggedOnce = false;
-    @Unique
     private static boolean cobblemonShowdown$loggedTileError = false;
     @Unique
     private static Method cobblemonShowdown$getTilesMethod = null;
     @Unique
     private static boolean cobblemonShowdown$tilesMethodLookupFailed = false;
-
-    static {
-        LoggerFactory.getLogger("CobblemonShowdown").info("[Showdown] BattleSwitchPokemonSelectionMixin class loaded!");
-    }
 
     @Unique
     @SuppressWarnings("unchecked")
@@ -44,14 +38,12 @@ public abstract class BattleSwitchPokemonSelectionMixin {
             if (cobblemonShowdown$getTilesMethod == null) {
                 // kotlin 'val tiles' compiles to a public getTiles() method
                 cobblemonShowdown$getTilesMethod = this.getClass().getMethod("getTiles");
-                cobblemonShowdown$LOGGER.info("[Showdown] Found getTiles() method on {}", this.getClass().getName());
             }
             return (List<?>) cobblemonShowdown$getTilesMethod.invoke(this);
         } catch (NoSuchMethodException e) {
             try {
                 Field tilesField = this.getClass().getDeclaredField("tiles");
                 tilesField.setAccessible(true);
-                cobblemonShowdown$LOGGER.info("[Showdown] Using direct field access for tiles");
                 return (List<?>) tilesField.get(this);
             } catch (Exception ex) {
                 cobblemonShowdown$LOGGER.warn("[Showdown] Could not access tiles. Listing available members:");
@@ -87,13 +79,6 @@ public abstract class BattleSwitchPokemonSelectionMixin {
             float delta,
             CallbackInfo ci
     ) {
-        if (!cobblemonShowdown$loggedOnce) {
-            cobblemonShowdown$LOGGER.info("[Showdown] === Battle Switch Mixin ACTIVATED ===");
-            cobblemonShowdown$LOGGER.info("[Showdown] Target class: {}", this.getClass().getName());
-            cobblemonShowdown$LOGGER.info("[Showdown] Context class: {}", context.getClass().getName());
-            cobblemonShowdown$loggedOnce = true;
-        }
-
         List<?> tiles = cobblemonShowdown$getTilesList();
         if (tiles == null) {
             return;

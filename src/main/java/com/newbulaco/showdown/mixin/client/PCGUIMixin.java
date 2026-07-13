@@ -26,8 +26,6 @@ public abstract class PCGUIMixin extends Screen {
     @Unique
     private static final Logger cobblemonShowdown$LOGGER = LoggerFactory.getLogger("CobblemonShowdown");
     @Unique
-    private static boolean cobblemonShowdown$loggedOnce = false;
-    @Unique
     private static Method cobblemonShowdown$getPreviewPokemonMethod = null;
     @Unique
     private static Field cobblemonShowdown$previewPokemonField = null;
@@ -53,10 +51,6 @@ public abstract class PCGUIMixin extends Screen {
     private static Method cobblemonShowdown$getBoxMethod = null;
     @Unique
     private static Method cobblemonShowdown$setBoxMethod = null;
-
-    static {
-        LoggerFactory.getLogger("CobblemonShowdown").info("[Showdown] PCGUIMixin class loaded!");
-    }
 
     protected PCGUIMixin(Component title) {
         super(title);
@@ -90,7 +84,6 @@ public abstract class PCGUIMixin extends Screen {
                             f.getType().getSimpleName().equals("StorageWidget")) {
                             cobblemonShowdown$storageWidgetField = f;
                             cobblemonShowdown$storageWidgetField.setAccessible(true);
-                            cobblemonShowdown$LOGGER.info("[Showdown] Found storageWidget field: {} in {}", fieldName, clazz.getSimpleName());
                             break;
                         }
                     }
@@ -112,7 +105,6 @@ public abstract class PCGUIMixin extends Screen {
             }
             return cobblemonShowdown$storageWidgetField.get(this);
         } catch (Exception e) {
-            cobblemonShowdown$LOGGER.debug("[Showdown] Failed to get storageWidget: {}", e.getMessage());
             return null;
         }
     }
@@ -140,7 +132,6 @@ public abstract class PCGUIMixin extends Screen {
                         if (name.equals("box") || name.equals("_box") || name.equals("box$delegate")) {
                             f.setAccessible(true);
                             cobblemonShowdown$boxField = f;
-                            cobblemonShowdown$LOGGER.debug("[Showdown] Found box field: {} in {}", name, clazz.getSimpleName());
                             break;
                         }
                     }
@@ -150,7 +141,6 @@ public abstract class PCGUIMixin extends Screen {
                 try {
                     cobblemonShowdown$setupStorageSlotsMethod = storageWidget.getClass().getDeclaredMethod("setupStorageSlots");
                     cobblemonShowdown$setupStorageSlotsMethod.setAccessible(true);
-                    cobblemonShowdown$LOGGER.debug("[Showdown] Found setupStorageSlots method");
                 } catch (NoSuchMethodException e) {
                     cobblemonShowdown$LOGGER.warn("[Showdown] Could not find setupStorageSlots method");
                 }
@@ -160,7 +150,6 @@ public abstract class PCGUIMixin extends Screen {
                     for (String methodName : new String[]{"getBox", "box", "getBox$common", "component1"}) {
                         try {
                             cobblemonShowdown$getBoxMethod = storageWidget.getClass().getMethod(methodName);
-                            cobblemonShowdown$LOGGER.debug("[Showdown] Found getBox method: {}", methodName);
                             break;
                         } catch (NoSuchMethodException ignored) {}
                     }
@@ -187,7 +176,6 @@ public abstract class PCGUIMixin extends Screen {
 
             return 0;
         } catch (Exception e) {
-            cobblemonShowdown$LOGGER.debug("[Showdown] Error getting current box: {}", e.getMessage());
             return 0;
         }
     }
@@ -204,7 +192,6 @@ public abstract class PCGUIMixin extends Screen {
                 for (String methodName : new String[]{"setBox", "setBox$common"}) {
                     try {
                         cobblemonShowdown$setBoxMethod = storageWidget.getClass().getMethod(methodName, int.class);
-                        cobblemonShowdown$LOGGER.debug("[Showdown] Found setBox method: {}", methodName);
                         break;
                     } catch (NoSuchMethodException ignored) {}
                 }
@@ -212,7 +199,6 @@ public abstract class PCGUIMixin extends Screen {
                 if (cobblemonShowdown$setBoxMethod == null) {
                     try {
                         cobblemonShowdown$setBoxMethod = storageWidget.getClass().getMethod("setBox", Integer.class);
-                        cobblemonShowdown$LOGGER.debug("[Showdown] Found setBox method with Integer parameter");
                     } catch (NoSuchMethodException ignored) {}
                 }
             }
@@ -220,19 +206,16 @@ public abstract class PCGUIMixin extends Screen {
             // setter is preferred; it calls setupStorageSlots internally
             if (cobblemonShowdown$setBoxMethod != null) {
                 cobblemonShowdown$setBoxMethod.invoke(storageWidget, box);
-                cobblemonShowdown$LOGGER.debug("[Showdown] Set box via setter to: {}", box);
                 return;
             }
 
             // fallback: direct field access + manual UI refresh
             if (cobblemonShowdown$boxField != null) {
                 cobblemonShowdown$boxField.set(storageWidget, box);
-                cobblemonShowdown$LOGGER.debug("[Showdown] Set box via field to: {}", box);
 
                 // must call setupStorageSlots() since we bypassed kotlin's custom setter
                 if (cobblemonShowdown$setupStorageSlotsMethod != null) {
                     cobblemonShowdown$setupStorageSlotsMethod.invoke(storageWidget);
-                    cobblemonShowdown$LOGGER.debug("[Showdown] Called setupStorageSlots to refresh UI");
                 } else {
                     cobblemonShowdown$LOGGER.warn("[Showdown] Cannot refresh UI - setupStorageSlots method not found");
                 }
@@ -241,7 +224,6 @@ public abstract class PCGUIMixin extends Screen {
 
             cobblemonShowdown$LOGGER.warn("[Showdown] Could not set box - no method or field found");
         } catch (Exception e) {
-            cobblemonShowdown$LOGGER.debug("[Showdown] Failed to set box: {}", e.getMessage());
         }
     }
 
@@ -257,7 +239,6 @@ public abstract class PCGUIMixin extends Screen {
                 for (String methodName : new String[]{"getPreviewPokemon", "getPreviewPokemon$common"}) {
                     try {
                         cobblemonShowdown$getPreviewPokemonMethod = this.getClass().getMethod(methodName);
-                        cobblemonShowdown$LOGGER.info("[Showdown] Found {} method", methodName);
                         break;
                     } catch (NoSuchMethodException ignored) {}
                 }
@@ -267,7 +248,6 @@ public abstract class PCGUIMixin extends Screen {
                         try {
                             cobblemonShowdown$previewPokemonField = this.getClass().getDeclaredField(fieldName);
                             cobblemonShowdown$previewPokemonField.setAccessible(true);
-                            cobblemonShowdown$LOGGER.info("[Showdown] Found {} field", fieldName);
                             break;
                         } catch (NoSuchFieldException ignored) {}
                     }
@@ -338,8 +318,6 @@ public abstract class PCGUIMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void cobblemonShowdown$onInit(CallbackInfo ci) {
-        cobblemonShowdown$LOGGER.info("[Showdown] Initializing PC sort panel");
-
         int guiX = (this.width - 349) / 2;
         int guiY = (this.height - 205) / 2;
 
@@ -349,18 +327,9 @@ public abstract class PCGUIMixin extends Screen {
         ClientPC pc = cobblemonShowdown$getPC();
         if (pc != null) {
             cobblemonShowdown$sortPanel = new PCSortPanel(sortX, sortY, pc, this::cobblemonShowdown$getCurrentBox);
-            cobblemonShowdown$LOGGER.info("[Showdown] Sort panel initialized at ({}, {})", sortX, sortY);
-
-            cobblemonShowdown$LOGGER.info("[Showdown] Last box value: {}, PC boxes count: {}",
-                    cobblemonShowdown$lastBox, pc.getBoxes().size());
 
             if (cobblemonShowdown$lastBox > 0 && cobblemonShowdown$lastBox < pc.getBoxes().size()) {
-                Object storageWidget = cobblemonShowdown$getStorageWidget();
-                cobblemonShowdown$LOGGER.info("[Showdown] StorageWidget found: {}", storageWidget != null);
                 cobblemonShowdown$setCurrentBox(cobblemonShowdown$lastBox);
-                int afterSet = cobblemonShowdown$getCurrentBox();
-                cobblemonShowdown$LOGGER.info("[Showdown] Restored to box {}, current box now: {}",
-                        cobblemonShowdown$lastBox, afterSet);
             }
         }
     }
@@ -416,7 +385,6 @@ public abstract class PCGUIMixin extends Screen {
         }
 
         cobblemonShowdown$setCurrentBox(newBox);
-        cobblemonShowdown$LOGGER.debug("[Showdown] Scrolled to box {} (from {})", newBox, currentBox);
 
         cir.setReturnValue(true);
     }
@@ -424,13 +392,11 @@ public abstract class PCGUIMixin extends Screen {
     @Inject(method = "onClose", at = @At("HEAD"), require = 0)
     private void cobblemonShowdown$onClose(CallbackInfo ci) {
         cobblemonShowdown$lastBox = cobblemonShowdown$getCurrentBox();
-        cobblemonShowdown$LOGGER.debug("[Showdown] Saved last box: {}", cobblemonShowdown$lastBox);
     }
 
     @Inject(method = "removed", at = @At("HEAD"), require = 0)
     private void cobblemonShowdown$onRemoved(CallbackInfo ci) {
         cobblemonShowdown$lastBox = cobblemonShowdown$getCurrentBox();
-        cobblemonShowdown$LOGGER.debug("[Showdown] Saved last box on removed: {}", cobblemonShowdown$lastBox);
     }
 
     @Inject(
@@ -444,12 +410,6 @@ public abstract class PCGUIMixin extends Screen {
             float delta,
             CallbackInfo ci
     ) {
-        if (!cobblemonShowdown$loggedOnce) {
-            cobblemonShowdown$LOGGER.info("[Showdown] === PC GUI Mixin ACTIVATED ===");
-            cobblemonShowdown$LOGGER.info("[Showdown] Target class: {}", this.getClass().getName());
-            cobblemonShowdown$loggedOnce = true;
-        }
-
         // save continuously, more reliable than hooking close methods
         int currentBox = cobblemonShowdown$getCurrentBox();
         if (currentBox >= 0) {
