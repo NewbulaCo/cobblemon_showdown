@@ -23,7 +23,8 @@
     "FieldStartInstructionMixin",
     "FieldEndInstructionMixin",
     "MoveInstructionMixin",
-    "SwitchInstructionMixin"
+    "SwitchInstructionMixin",
+    "InsufficientPokemonErrorMixin"
   ],
   "injectors": {
     "defaultRequire": 1
