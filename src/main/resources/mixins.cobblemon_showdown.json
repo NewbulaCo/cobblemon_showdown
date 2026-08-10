@@ -13,7 +13,8 @@
     "client.BattleOverlayMixin",
     "client.ItemStackMixin",
     "client.InfoWidgetMixin",
-    "client.MovesWidgetMixin"
+    "client.MovesWidgetMixin",
+    "client.BattleGeneralActionSelectionMixin"
   ],
   "mixins": [
     "GraalShowdownServiceMixin",
