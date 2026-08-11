@@ -263,14 +263,6 @@ public class ShowdownBattle {
         LOGGER.info("Battle ended: {} - Winner: {}", battleId, winnerId);
     }
 
-    public void onTurnStart(int turnNumber) {
-        if (timer != null) {
-            timer.onTurnStart();
-        }
-
-        LOGGER.debug("Battle {} - Turn {}", battleId, turnNumber);
-    }
-
     public UUID getBattleId() {
         return battleId;
     }

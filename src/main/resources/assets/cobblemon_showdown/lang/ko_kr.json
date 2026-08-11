@@ -8,6 +8,8 @@
   "cobblemon_showdown.battle.timeout_opponent": "승리 - 상대가 시간 제한을 초과했습니다!",
   "cobblemon_showdown.battle.time_warn_total": "경고: 시간 제한 %s초 남음!",
   "cobblemon_showdown.battle.time_warn_turn": "경고: 턴 시간 제한 %s초 남음!",
+  "cobblemon_showdown.battle_hud.timer.you": "나",
+  "cobblemon_showdown.battle_hud.timer.line": "%1$s  %2$s / %3$s",
   "cobblemon_showdown.battle_spectate.disabled": "이 배틀은 관전이 비활성화 되어있습니다",
   "cobblemon_showdown.battle_spectate.self": "자신의 배틀은 관전할 수 없습니다",
   "cobblemon_showdown.battle_spectate.ended_battle": "이 배틀은 이미 종료되었습니다",

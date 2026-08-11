@@ -8,6 +8,8 @@
   "cobblemon_showdown.battle.timeout_opponent": "You won - opponent ran out of time!",
   "cobblemon_showdown.battle.time_warn_total": "Warning: %ss total time remaining!",
   "cobblemon_showdown.battle.time_warn_turn": "Warning: %ss turn time remaining!",
+  "cobblemon_showdown.battle_hud.timer.you": "You",
+  "cobblemon_showdown.battle_hud.timer.line": "%1$s  %2$s / %3$s",
   "cobblemon_showdown.battle_spectate.disabled": "Spectating is disabled for this battle",
   "cobblemon_showdown.battle_spectate.self": "You cannot spectate your own battle",
   "cobblemon_showdown.battle_spectate.ended_battle": "This battle has already ended",

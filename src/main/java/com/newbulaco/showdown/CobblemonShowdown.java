@@ -3,6 +3,7 @@ package com.newbulaco.showdown;
 import com.mojang.logging.LogUtils;
 import com.newbulaco.showdown.config.ShowdownConfig;
 import com.newbulaco.showdown.battle.BattleManager;
+import com.newbulaco.showdown.battle.BattleTimer;
 import com.newbulaco.showdown.battle.CobblemonBattleListener;
 import com.newbulaco.showdown.battle.ShowdownBattle;
 import com.newbulaco.showdown.battle.VolatileEffectTracker;
@@ -12,6 +13,7 @@ import com.newbulaco.showdown.data.HistoryStorage;
 import com.newbulaco.showdown.format.FormatManager;
 import com.newbulaco.showdown.gui.PartySelectionSession;
 import com.newbulaco.showdown.network.ShowdownNetwork;
+import com.newbulaco.showdown.network.packets.BattleStatePacket;
 import com.newbulaco.showdown.util.TickScheduler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -94,9 +96,22 @@ public class CobblemonShowdown {
             PartySelectionSession.tickAll();
 
             if (battleManager != null) {
+                boolean broadcastTimers = tickCounter % 20 == 0;
                 for (ShowdownBattle battle : battleManager.getActiveBattles().values()) {
-                    if (battle.getTimer() != null && battle.getTimer().isRunning()) {
-                        battle.getTimer().tick();
+                    BattleTimer timer = battle.getTimer();
+                    if (timer == null || !timer.isRunning()) continue;
+                    timer.tick();
+                    if (broadcastTimers) {
+                        BattleStatePacket packet = BattleStatePacket.timerUpdate(
+                                battle.getBattleId(),
+                                battle.getPlayer1().getName().getString(),
+                                battle.getPlayer2().getName().getString(),
+                                timer.getPlayer1TotalTime(),
+                                timer.getPlayer1TurnTime(),
+                                timer.getPlayer2TotalTime(),
+                                timer.getPlayer2TurnTime());
+                        ShowdownNetwork.sendToPlayer(packet, battle.getPlayer1());
+                        ShowdownNetwork.sendToPlayer(packet, battle.getPlayer2());
                     }
                 }
             }
