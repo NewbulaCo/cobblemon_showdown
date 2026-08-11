@@ -580,9 +580,9 @@ public class BattleOverlayRenderer {
             }
             if (opponentBattlePokemon == null) return;
 
-            // use getTypes() to get all types reliably for dual-type pokemon
+            // resolve by aspects so regional variants / megas use their own typing
             Species opponentSpecies = opponentBattlePokemon.getSpecies();
-            var formData = opponentSpecies.getStandardForm();
+            var formData = opponentSpecies.getForm(opponentBattlePokemon.getAspects());
             var types = formData.getTypes();
 
             String primaryType = null;
