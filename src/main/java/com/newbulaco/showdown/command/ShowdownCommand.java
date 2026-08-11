@@ -91,8 +91,11 @@ public class ShowdownCommand {
                 .withStyle(ChatFormatting.AQUA, ChatFormatting.BOLD));
         sendHelpLine(player, "/showdown challenge <player> <format>",
             Component.translatable("command.cobblemon_showdown.help.challenge.start"));
+        // todo: fix item bet for /showdown challenge
+        /*
         sendHelpLine(player, "/showdown challenge <player> <format> item_bet:<item>,<amount>",
             Component.translatable("command.cobblemon_showdown.help.challenge.start_bet"));
+        */
         sendHelpLine(player, "/showdown accept <player>",
             Component.translatable("command.cobblemon_showdown.help.challenge.accept"));
         sendHelpLine(player, "/showdown deny <player>",

@@ -47,8 +47,12 @@ public class ChallengeCommand {
                                     return builder.buildFuture();
                                 })
                                 .executes(ChallengeCommand::challengePlayer)
+                                // todo: fix item bet for /showdown challenge
+                                /*
                                 .then(Commands.argument("item_bet", StringArgumentType.greedyString())
-                                        .executes(ChallengeCommand::challengePlayerWithBet)))));
+                                        .executes(ChallengeCommand::challengePlayerWithBet))
+                                */
+                                )));
 
         parent.then(Commands.literal("accept")
                 .then(Commands.argument("player", EntityArgument.player())
