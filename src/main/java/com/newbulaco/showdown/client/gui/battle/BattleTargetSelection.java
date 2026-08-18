@@ -21,6 +21,7 @@ import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleActionSelectio
 import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleBackButton;
 import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleMoveSelection;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.newbulaco.showdown.client.battle.ClientCommandingTracker;
 import com.newbulaco.showdown.client.battle.TypeEffectiveness;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -283,7 +284,14 @@ public class BattleTargetSelection extends BattleActionSelection {
         }
 
         boolean selectable() {
-            return isMulti || responsePnx != null;
+            if (!(isMulti || responsePnx != null)) return false;
+            if (target instanceof ActiveClientBattlePokemon) {
+                ClientBattlePokemon bp = ((ActiveClientBattlePokemon) target).getBattlePokemon();
+                if (bp == null) return false;
+                if (bp.getHpValue() <= 0) return false;
+                if (ClientCommandingTracker.getInstance().isCommanding(bp.getUuid())) return false;
+            }
+            return true;
         }
 
         boolean isHovered(double mx, double my) {

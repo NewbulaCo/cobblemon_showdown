@@ -38,7 +38,8 @@ public class ShowdownMixinPlugin implements IMixinConfigPlugin {
         if (!cobblemonPresent) {
             if (mixinClassName.contains("PCGUIMixin")
                     || mixinClassName.contains("BattleSwitchPokemonSelectionMixin")
-                    || mixinClassName.contains("BattleGeneralActionSelectionMixin")) {
+                    || mixinClassName.contains("BattleGeneralActionSelectionMixin")
+                    || mixinClassName.contains("BattleMadeInvalidChoiceHandlerMixin")) {
                 return false;
             }
             // safe to always apply since it checks namespace, but needs cobblemon for party access

@@ -9,6 +9,7 @@ import com.cobblemon.mod.common.client.battle.ClientBattlePokemon;
 import com.cobblemon.mod.common.client.battle.SingleActionRequest;
 import com.cobblemon.mod.common.client.gui.battle.BattleGUI;
 import com.cobblemon.mod.common.client.gui.battle.subscreen.BattleActionSelection;
+import com.newbulaco.showdown.client.battle.ClientCommandingTracker;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -34,11 +35,20 @@ public abstract class BattleGUIMixin {
 
         if (request.getForceSwitch()) return;
 
-        if (request.getMoveSet() != null && !cobblemonShowdown$sidePokemonMissingOrFainted(request)) return;
+        boolean commanding = cobblemonShowdown$activeIsCommanding(request);
+        if (!commanding && request.getMoveSet() != null && !cobblemonShowdown$sidePokemonMissingOrFainted(request)) return;
 
         BattleGUI self = (BattleGUI) (Object) this;
         self.selectAction(request, PassActionResponse.INSTANCE);
         cir.setReturnValue(null);
+    }
+
+    private boolean cobblemonShowdown$activeIsCommanding(SingleActionRequest request) {
+        ActiveClientBattlePokemon active = request.getActivePokemon();
+        if (active == null) return false;
+        ClientBattlePokemon bp = active.getBattlePokemon();
+        if (bp == null) return false;
+        return ClientCommandingTracker.getInstance().isCommanding(bp.getUuid());
     }
 
     private boolean cobblemonShowdown$sidePokemonMissingOrFainted(SingleActionRequest request) {

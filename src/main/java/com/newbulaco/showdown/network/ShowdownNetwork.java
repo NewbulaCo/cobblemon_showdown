@@ -3,6 +3,7 @@ package com.newbulaco.showdown.network;
 import com.newbulaco.showdown.CobblemonShowdown;
 import com.newbulaco.showdown.network.packets.BattleClearPacket;
 import com.newbulaco.showdown.network.packets.BattleStatePacket;
+import com.newbulaco.showdown.network.packets.CommandingSyncPacket;
 import com.newbulaco.showdown.network.packets.SeriesStatePacket;
 import com.newbulaco.showdown.network.packets.FieldStatusPacket;
 import com.newbulaco.showdown.network.packets.PartyLearnersRequestPacket;
@@ -133,6 +134,15 @@ public class ShowdownNetwork {
                 PartyLearnersResponsePacket::encode,
                 PartyLearnersResponsePacket::decode,
                 PartyLearnersResponsePacket::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT)
+        );
+
+        CHANNEL.registerMessage(
+                packetId++,
+                CommandingSyncPacket.class,
+                CommandingSyncPacket::encode,
+                CommandingSyncPacket::decode,
+                CommandingSyncPacket::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT)
         );
 

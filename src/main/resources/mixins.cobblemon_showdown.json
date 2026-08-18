@@ -14,7 +14,8 @@
     "client.ItemStackMixin",
     "client.InfoWidgetMixin",
     "client.MovesWidgetMixin",
-    "client.BattleGeneralActionSelectionMixin"
+    "client.BattleGeneralActionSelectionMixin",
+    "client.BattleMadeInvalidChoiceHandlerMixin"
   ],
   "mixins": [
     "GraalShowdownServiceMixin",
@@ -25,7 +26,8 @@
     "FieldEndInstructionMixin",
     "MoveInstructionMixin",
     "SwitchInstructionMixin",
-    "InsufficientPokemonErrorMixin"
+    "InsufficientPokemonErrorMixin",
+    "RequestInstructionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

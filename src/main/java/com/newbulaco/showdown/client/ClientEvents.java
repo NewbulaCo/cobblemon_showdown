@@ -1,6 +1,7 @@
 package com.newbulaco.showdown.client;
 
 import com.newbulaco.showdown.CobblemonShowdown;
+import com.newbulaco.showdown.client.battle.ClientCommandingTracker;
 import com.newbulaco.showdown.client.battle.ClientPartyStatusManager;
 import com.newbulaco.showdown.client.battle.ClientSideConditionManager;
 import com.newbulaco.showdown.client.battle.ClientStatChangeManager;
@@ -21,6 +22,7 @@ public class ClientEvents {
         ClientStatChangeManager.getInstance().clearAll();
         ClientSideConditionManager.getInstance().clearAll();
         ClientPartyStatusManager.getInstance().clearAll();
+        ClientCommandingTracker.getInstance().clear();
         PartyLearnersCache.getInstance().clear();
     }
 }
