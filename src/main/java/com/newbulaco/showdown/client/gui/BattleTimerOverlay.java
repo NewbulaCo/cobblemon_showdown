@@ -67,9 +67,8 @@ public class BattleTimerOverlay {
         int width = Math.max(font.width(youLine), font.width(oppLine));
         int height = font.lineHeight * 2 + LINE_SPACING;
 
-        int screenW = mc.getWindow().getGuiScaledWidth();
         int screenH = mc.getWindow().getGuiScaledHeight();
-        int boxX = screenW - width - PADDING * 2 - MARGIN;
+        int boxX = MARGIN;
         int boxY = screenH - height - PADDING * 2 - MARGIN;
 
         GuiGraphics graphics = event.getGuiGraphics();
